@@ -26,13 +26,11 @@ type HTTPClient interface {
 // TODO(nikola-jokic): Should defaults be applied and functional options used?
 // For now, I think it might be better to force specifying all the fields.
 type Client struct {
-	baseURL          *url.URL
-	baseIngestURL    *url.URL
-	useIngestService bool
-	debug            bool
-	userAgent        string
-	bearerAuth       string
-	client           HTTPClient
+	baseURL    *url.URL
+	debug      bool
+	userAgent  string
+	bearerAuth string
+	client     HTTPClient
 }
 
 func New(cfg Config) (*Client, error) {
@@ -41,16 +39,13 @@ func New(cfg Config) (*Client, error) {
 	}
 
 	baseURL, _ := url.Parse(cfg.BaseURL)
-	baseIngestURL, _ := url.Parse(cfg.BaseIngestURL)
 
 	return &Client{
-		baseURL:          baseURL,
-		baseIngestURL:    baseIngestURL,
-		useIngestService: cfg.UseIngestService,
-		debug:            cfg.Debug,
-		userAgent:        "lago-go github.com/nikola-jokic/lago-go",
-		bearerAuth:       "Bearer " + cfg.APIKey,
-		client:           cfg.Client,
+		baseURL:    baseURL,
+		debug:      cfg.Debug,
+		userAgent:  "lago-go github.com/nikola-jokic/lago-go",
+		bearerAuth: "Bearer " + cfg.APIKey,
+		client:     cfg.Client,
 	}, nil
 }
 
