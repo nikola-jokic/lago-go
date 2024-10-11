@@ -2,8 +2,8 @@ package lago
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
+	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -34,6 +34,17 @@ type WebhookEndpointListInput struct {
 	Page    int `json:"page,omitempty,string"`
 }
 
+func (i *WebhookEndpointListInput) query() url.Values {
+	v := url.Values{}
+	if i.PerPage != 0 {
+		v.Add("per_page", strconv.Itoa(i.PerPage))
+	}
+	if i.Page != 0 {
+		v.Add("page", strconv.Itoa(i.Page))
+	}
+	return v
+}
+
 type WebhookEndpointResult struct {
 	WebhookEndpoint  *WebhookEndpoint   `json:"webhook_endpoint,omitempty"`
 	WebhookEndpoints []*WebhookEndpoint `json:"webhook_endpoints,omitempty"`
@@ -55,116 +66,47 @@ func (c *Client) WebhookEndpoint() *WebhookEndpointRequest {
 }
 
 func (wer *WebhookEndpointRequest) Get(ctx context.Context, webhookEndpointID string) (*WebhookEndpoint, *Error) {
-	subPath := fmt.Sprintf("%s/%s", "webhook_endpoints", webhookEndpointID)
-	clientRequest := &ClientRequest{
-		Path:   subPath,
-		Result: &WebhookEndpointResult{},
-	}
-
-	result, err := wer.client.Get(ctx, clientRequest)
+	u := wer.client.url("webhook_endpoints/"+webhookEndpointID, nil)
+	result, err := get[WebhookEndpointResult](ctx, wer.client, u)
 	if err != nil {
 		return nil, err
 	}
 
-	webhookEndpointResult, ok := result.(*WebhookEndpointResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return webhookEndpointResult.WebhookEndpoint, nil
+	return result.WebhookEndpoint, nil
 }
 
 func (wer *WebhookEndpointRequest) GetList(ctx context.Context, webhookEndpointListInput *WebhookEndpointListInput) (*WebhookEndpointResult, *Error) {
-	jsonQueryParams, err := json.Marshal(webhookEndpointListInput)
-	if err != nil {
-		return nil, &Error{Err: err}
-	}
-
-	queryParams := make(map[string]string)
-	if err = json.Unmarshal(jsonQueryParams, &queryParams); err != nil {
-		return nil, &Error{Err: err}
-	}
-
-	clientRequest := &ClientRequest{
-		Path:        "webhook_endpoints",
-		QueryParams: queryParams,
-		Result:      &WebhookEndpointResult{},
-	}
-
-	result, clientErr := wer.client.Get(ctx, clientRequest)
-	if clientErr != nil {
-		return nil, clientErr
-	}
-
-	webhookEndpointResult, ok := result.(*WebhookEndpointResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return webhookEndpointResult, nil
+	u := wer.client.url("webhook_endpoints", webhookEndpointListInput.query())
+	return get[WebhookEndpointResult](ctx, wer.client, u)
 }
 
 func (wer *WebhookEndpointRequest) Create(ctx context.Context, webhookEndpointInput *WebhookEndpointInput) (*WebhookEndpoint, *Error) {
-	webhookEndpointParams := &WebhookEndpointParams{
-		WebhookEndpointInput: webhookEndpointInput,
-	}
+	u := wer.client.url("webhook_endpoints", nil)
 
-	clientRequest := &ClientRequest{
-		Path:   "webhook_endpoints",
-		Result: &WebhookEndpointResult{},
-		Body:   webhookEndpointParams,
-	}
-
-	result, err := wer.client.Post(ctx, clientRequest)
+	result, err := post[WebhookEndpointParams, WebhookEndpointResult](ctx, wer.client, u, &WebhookEndpointParams{WebhookEndpointInput: webhookEndpointInput})
 	if err != nil {
 		return nil, err
 	}
 
-	webhookEndpointResult, ok := result.(*WebhookEndpointResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return webhookEndpointResult.WebhookEndpoint, nil
+	return result.WebhookEndpoint, nil
 }
 
 func (wer *WebhookEndpointRequest) Update(ctx context.Context, webhookEndpointInput *WebhookEndpointInput, webhookEndpointID string) (*WebhookEndpoint, *Error) {
-	subPath := fmt.Sprintf("%s/%s", "webhook_endpoints", webhookEndpointID)
-	clientRequest := &ClientRequest{
-		Path:   subPath,
-		Result: &WebhookEndpointResult{},
-		Body:   webhookEndpointInput,
-	}
-
-	result, err := wer.client.Put(ctx, clientRequest)
+	u := wer.client.url("webhook_endpoints/"+webhookEndpointID, nil)
+	result, err := put[WebhookEndpointParams, WebhookEndpointResult](ctx, wer.client, u, &WebhookEndpointParams{WebhookEndpointInput: webhookEndpointInput})
 	if err != nil {
 		return nil, err
 	}
 
-	webhookEndpointResult, ok := result.(*WebhookEndpointResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return webhookEndpointResult.WebhookEndpoint, nil
+	return result.WebhookEndpoint, nil
 }
 
 func (wer *WebhookEndpointRequest) Delete(ctx context.Context, webhookEndpointID string) (*WebhookEndpoint, *Error) {
-	subPath := fmt.Sprintf("%s/%s", "webhook_endpoints", webhookEndpointID)
-	clientRequest := &ClientRequest{
-		Path:   subPath,
-		Result: &WebhookEndpointResult{},
-	}
-
-	result, err := wer.client.Delete(ctx, clientRequest)
+	u := wer.client.url("webhook_endpoints/"+webhookEndpointID, nil)
+	result, err := delete[WebhookEndpointResult](ctx, wer.client, u)
 	if err != nil {
 		return nil, err
 	}
 
-	webhookEndpointResult, ok := result.(*WebhookEndpointResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return webhookEndpointResult.WebhookEndpoint, nil
+	return result.WebhookEndpoint, nil
 }

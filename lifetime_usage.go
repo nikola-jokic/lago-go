@@ -2,7 +2,6 @@ package lago
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -43,48 +42,21 @@ type LifetimeUsageInput struct {
 }
 
 func (sr *SubscriptionRequest) GetLifetimeUsage(ctx context.Context, externalSubscriptionID string) (*LifetimeUsage, *Error) {
-	subPath := fmt.Sprintf("%s/%s/%s", "subscriptions", externalSubscriptionID, "lifetime_usage")
-
-	clientRequest := &ClientRequest{
-		Path:   subPath,
-		Result: &LifetimeUsageResult{},
+	u := sr.client.url("subscriptions/"+externalSubscriptionID+"/lifetime_usage", nil)
+	result, err := get[LifetimeUsageResult](ctx, sr.client, u)
+	if err != nil {
+		return nil, err
 	}
 
-	result, clientErr := sr.client.Get(ctx, clientRequest)
-	if clientErr != nil {
-		return nil, clientErr
-	}
-
-	lifetimeUsageResult, ok := result.(*LifetimeUsageResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return lifetimeUsageResult.LifetimeUsage, nil
+	return result.LifetimeUsage, nil
 }
 
 func (sr *SubscriptionRequest) UpdateLifetimeUsage(ctx context.Context, lifetimeUsageInput *LifetimeUsageInput) (*LifetimeUsage, *Error) {
-	subPath := fmt.Sprintf("%s/%s/%s", "subscriptions", lifetimeUsageInput.ExternalSubscriptionID, "lifetime_usage")
-
-	lifetimeUsageParams := &LifetimeUsageParams{
-		LifetimeUsage: lifetimeUsageInput,
+	u := sr.client.url("subscriptions/"+lifetimeUsageInput.ExternalSubscriptionID+"/lifetime_usage", nil)
+	result, err := put[LifetimeUsageInput, LifetimeUsageResult](ctx, sr.client, u, lifetimeUsageInput)
+	if err != nil {
+		return nil, err
 	}
 
-	clientRequest := &ClientRequest{
-		Path:   subPath,
-		Result: &LifetimeUsageResult{},
-		Body:   lifetimeUsageParams,
-	}
-
-	result, clientErr := sr.client.Put(ctx, clientRequest)
-	if clientErr != nil {
-		return nil, clientErr
-	}
-
-	lifetimeUsageResult, ok := result.(*LifetimeUsageResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return lifetimeUsageResult.LifetimeUsage, nil
+	return result.LifetimeUsage, nil
 }

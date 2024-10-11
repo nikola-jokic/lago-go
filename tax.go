@@ -2,8 +2,8 @@ package lago
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
+	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -30,6 +30,20 @@ type TaxInput struct {
 type TaxListInput struct {
 	PerPage int `json:"per_page,omitempty,string"`
 	Page    int `json:"page,omitempty,string"`
+}
+
+func (i *TaxListInput) query() url.Values {
+	q := make(url.Values)
+
+	if i.PerPage > 0 {
+		q.Add("per_page", strconv.Itoa(i.PerPage))
+	}
+
+	if i.Page > 0 {
+		q.Add("page", strconv.Itoa(i.Page))
+	}
+
+	return q
 }
 
 type TaxResult struct {
@@ -59,121 +73,49 @@ func (c *Client) Tax() *TaxRequest {
 }
 
 func (adr *TaxRequest) Get(ctx context.Context, taxCode string) (*Tax, *Error) {
-	subPath := fmt.Sprintf("%s/%s", "taxes", taxCode)
-	clientRequest := &ClientRequest{
-		Path:   subPath,
-		Result: &TaxResult{},
-	}
-
-	result, err := adr.client.Get(ctx, clientRequest)
+	u := adr.client.url("taxes/"+taxCode, nil)
+	result, err := get[TaxResult](ctx, adr.client, u)
 	if err != nil {
 		return nil, err
 	}
 
-	taxResult, ok := result.(*TaxResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return taxResult.Tax, nil
+	return result.Tax, nil
 }
 
 func (adr *TaxRequest) GetList(ctx context.Context, taxListInput *TaxListInput) (*TaxResult, *Error) {
-	jsonQueryparams, err := json.Marshal(taxListInput)
-	if err != nil {
-		return nil, &Error{Err: err}
-	}
-
-	queryParams := make(map[string]string)
-	if err = json.Unmarshal(jsonQueryparams, &queryParams); err != nil {
-		return nil, &Error{Err: err}
-	}
-
-	clientRequest := &ClientRequest{
-		Path:        "taxes",
-		QueryParams: queryParams,
-		Result:      &TaxResult{},
-	}
-
-	result, clientErr := adr.client.Get(ctx, clientRequest)
-	if clientErr != nil {
-		return nil, clientErr
-	}
-
-	taxResult, ok := result.(*TaxResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return taxResult, nil
+	u := adr.client.url("taxes", taxListInput.query())
+	return get[TaxResult](ctx, adr.client, u)
 }
 
 func (adr *TaxRequest) Create(ctx context.Context, taxInput *TaxInput) (*Tax, *Error) {
-	taxParams := &TaxParams{
-		Tax: taxInput,
-	}
+	u := adr.client.url("taxes", nil)
 
-	clientRequest := &ClientRequest{
-		Path:   "taxes",
-		Result: &TaxResult{},
-		Body:   taxParams,
-	}
-
-	result, err := adr.client.Post(ctx, clientRequest)
+	result, err := post[TaxParams, TaxResult](ctx, adr.client, u, &TaxParams{Tax: taxInput})
 	if err != nil {
 		return nil, err
 	}
 
-	taxResult, ok := result.(*TaxResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return taxResult.Tax, nil
+	return result.Tax, nil
 }
 
 func (adr *TaxRequest) Update(ctx context.Context, taxInput *TaxInput) (*Tax, *Error) {
-	subPath := fmt.Sprintf("%s/%s", "taxes", taxInput.Code)
-	taxParams := &TaxParams{
-		Tax: taxInput,
-	}
+	u := adr.client.url("taxes/"+taxInput.Code, nil)
 
-	clientRequest := &ClientRequest{
-		Path:   subPath,
-		Result: &TaxResult{},
-		Body:   taxParams,
-	}
-
-	result, err := adr.client.Put(ctx, clientRequest)
+	result, err := put[TaxParams, TaxResult](ctx, adr.client, u, &TaxParams{Tax: taxInput})
 	if err != nil {
 		return nil, err
 	}
 
-	taxResult, ok := result.(*TaxResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return taxResult.Tax, nil
+	return result.Tax, nil
 }
 
 func (adr *TaxRequest) Delete(ctx context.Context, taxCode string) (*Tax, *Error) {
-	subPath := fmt.Sprintf("%s/%s", "taxes", taxCode)
+	u := adr.client.url("taxes/"+taxCode, nil)
 
-	clientRequest := &ClientRequest{
-		Path:   subPath,
-		Result: &TaxResult{},
-	}
-
-	result, err := adr.client.Delete(ctx, clientRequest)
+	result, err := delete[TaxResult](ctx, adr.client, u)
 	if err != nil {
 		return nil, err
 	}
 
-	taxResult, ok := result.(*TaxResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return taxResult.Tax, nil
+	return result.Tax, nil
 }

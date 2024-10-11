@@ -2,7 +2,6 @@ package lago
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -67,95 +66,36 @@ func (c *Client) Event() *EventRequest {
 }
 
 func (er *EventRequest) Create(ctx context.Context, eventInput *EventInput) (*Event, *Error) {
-	eventParams := &EventParams{
-		Event: eventInput,
-	}
-
-	clientRequest := &ClientRequest{
-		UseIngestService: true,
-		Path:             "events",
-		Result:           &EventResult{},
-		Body:             eventParams,
-	}
-
-	result, err := er.client.Post(ctx, clientRequest)
+	u := er.client.url("events", nil)
+	result, err := post[EventParams, EventResult](ctx, er.client, u, &EventParams{Event: eventInput})
 	if err != nil {
 		return nil, err
 	}
 
-	eventResult, ok := result.(*EventResult)
-	if !ok {
-		return nil, err
-	}
-
-	return eventResult.Event, nil
+	return result.Event, nil
 }
 
 func (er *EventRequest) EstimateFees(ctx context.Context, estimateInput EventEstimateFeesInput) (*FeeResult, *Error) {
-	eventEstimateParams := &EventEstimateFeesParams{
-		Event: &estimateInput,
-	}
-
-	clientRequest := &ClientRequest{
-		Path:   "events/estimate_fees",
-		Result: &FeeResult{},
-		Body:   eventEstimateParams,
-	}
-
-	result, clientErr := er.client.Post(ctx, clientRequest)
-	if clientErr != nil {
-		return nil, clientErr
-	}
-
-	feeResult, ok := result.(*FeeResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return feeResult, nil
+	u := er.client.url("events/estimate_fees", nil)
+	return post[EventEstimateFeesParams, FeeResult](ctx, er.client, u, &EventEstimateFeesParams{Event: &estimateInput})
 }
 
 func (er *EventRequest) Get(ctx context.Context, eventID string) (*Event, *Error) {
-	subPath := fmt.Sprintf("%s/%s", "events", eventID)
-	clientRequest := &ClientRequest{
-		Path:   subPath,
-		Result: &EventResult{},
-	}
-
-	result, err := er.client.Get(ctx, clientRequest)
+	u := er.client.url("events/"+eventID, nil)
+	result, err := get[EventResult](ctx, er.client, u)
 	if err != nil {
 		return nil, err
 	}
 
-	eventResult, ok := result.(*EventResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return eventResult.Event, nil
+	return result.Event, nil
 }
 
 func (er *EventRequest) Batch(ctx context.Context, batchInput *[]*EventInput) (*[]*Event, *Error) {
-	eventParams := &BatchEventParams{
-		Events: batchInput,
-	}
-
-	clientRequest := &ClientRequest{
-		UseIngestService: true,
-		Path:             "events/batch",
-		Result:           &BatchEventResult{},
-		Body:             eventParams,
-	}
-
-	result, err := er.client.Post(ctx, clientRequest)
+	u := er.client.url("events/batch", nil)
+	result, err := post[BatchEventParams, BatchEventResult](ctx, er.client, u, &BatchEventParams{Events: batchInput})
 	if err != nil {
 		return nil, err
 	}
 
-	batchEventResult, ok := result.(*BatchEventResult)
-	if !ok {
-		return nil, err
-	}
-
-	return batchEventResult.Events, nil
+	return result.Events, nil
 }

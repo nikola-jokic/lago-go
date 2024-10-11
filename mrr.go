@@ -2,7 +2,8 @@ package lago
 
 import (
 	"context"
-	"encoding/json"
+	"net/url"
+	"strconv"
 )
 
 type MrrRequest struct {
@@ -12,6 +13,20 @@ type MrrRequest struct {
 type MrrListInput struct {
 	AmountCurrency string `json:"currency,omitempty"`
 	Months         int    `json:"months,omitempty,string"`
+}
+
+func (i *MrrListInput) query() url.Values {
+	q := make(url.Values)
+
+	if i.AmountCurrency != "" {
+		q.Add("currency", i.AmountCurrency)
+	}
+
+	if i.Months > 0 {
+		q.Add("months", strconv.Itoa(i.Months))
+	}
+
+	return q
 }
 
 type MrrResult struct {
@@ -32,31 +47,6 @@ func (c *Client) Mrr() *MrrRequest {
 }
 
 func (adr *MrrRequest) GetList(ctx context.Context, MrrListInput *MrrListInput) (*MrrResult, *Error) {
-	jsonQueryparams, err := json.Marshal(MrrListInput)
-	if err != nil {
-		return nil, &Error{Err: err}
-	}
-
-	queryParams := make(map[string]string)
-	if err = json.Unmarshal(jsonQueryparams, &queryParams); err != nil {
-		return nil, &Error{Err: err}
-	}
-
-	clientRequest := &ClientRequest{
-		Path:        "analytics/mrr",
-		QueryParams: queryParams,
-		Result:      &MrrResult{},
-	}
-
-	result, clientErr := adr.client.Get(ctx, clientRequest)
-	if clientErr != nil {
-		return nil, clientErr
-	}
-
-	MrrResult, ok := result.(*MrrResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return MrrResult, nil
+	u := adr.client.url("analytics/mrr", MrrListInput.query())
+	return get[MrrResult](ctx, adr.client, u)
 }

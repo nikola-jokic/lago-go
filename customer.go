@@ -2,8 +2,8 @@ package lago
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
+	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -116,6 +116,19 @@ type CustomerListInput struct {
 	Page    int `json:"page,omitempty,string"`
 }
 
+func (i *CustomerListInput) query() url.Values {
+	q := make(url.Values)
+
+	if i.PerPage > 0 {
+		q.Add("per_page", strconv.Itoa(i.PerPage))
+	}
+	if i.Page > 0 {
+		q.Add("page", strconv.Itoa(i.Page))
+	}
+
+	return q
+}
+
 type CustomerBillingConfigurationInput struct {
 	InvoiceGracePeriod  int                     `json:"invoice_grace_period,omitempty"`
 	PaymentProvider     CustomerPaymentProvider `json:"payment_provider,omitempty"`
@@ -215,10 +228,34 @@ type CustomerUsageInput struct {
 	ExternalSubscriptionID string `json:"external_subscription_id,omitempty"`
 }
 
+func (i *CustomerUsageInput) query() url.Values {
+	q := make(url.Values)
+	if i.ExternalSubscriptionID != "" {
+		q.Add("external_subscription_id", i.ExternalSubscriptionID)
+	}
+
+	return q
+}
+
 type CustomerPastUsageInput struct {
 	ExternalSubscriptionID string `json:"external_subscription_id"`
 	BillableMetricCode     string `json:"billable_metric_code,omitempty"`
 	PeriodsCount           int    `json:"periods_count,omitempty"`
+}
+
+func (i *CustomerPastUsageInput) query() url.Values {
+	q := make(url.Values)
+	if i.ExternalSubscriptionID != "" {
+		q.Add("external_subscription_id", i.ExternalSubscriptionID)
+	}
+	if i.BillableMetricCode != "" {
+		q.Add("billable_metric_code", i.BillableMetricCode)
+	}
+	if i.PeriodsCount > 0 {
+		q.Add("periods_count", strconv.Itoa(i.PeriodsCount))
+	}
+
+	return q
 }
 
 type Customer struct {
@@ -271,27 +308,13 @@ func (c *Client) Customer() *CustomerRequest {
 }
 
 func (cr *CustomerRequest) Create(ctx context.Context, customerInput *CustomerInput) (*Customer, *Error) {
-	customerParams := &CustomerParams{
-		Customer: customerInput,
-	}
-
-	clientRequest := &ClientRequest{
-		Path:   "customers",
-		Result: &CustomerResult{},
-		Body:   customerParams,
-	}
-
-	result, err := cr.client.Post(ctx, clientRequest)
+	u := cr.client.url("customers", nil)
+	result, err := post[CustomerParams, CustomerResult](ctx, cr.client, u, &CustomerParams{Customer: customerInput})
 	if err != nil {
 		return nil, err
 	}
 
-	customerResult, ok := result.(*CustomerResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return customerResult.Customer, nil
+	return result.Customer, nil
 }
 
 // NOTE: Update endpoint does not exists, actually we use the create endpoint with the
@@ -301,177 +324,63 @@ func (cr *CustomerRequest) Update(ctx context.Context, customerInput *CustomerIn
 }
 
 func (cr *CustomerRequest) CurrentUsage(ctx context.Context, externalCustomerID string, customerUsageInput *CustomerUsageInput) (*CustomerUsage, *Error) {
-	subPath := fmt.Sprintf("%s/%s/%s", "customers", externalCustomerID, "current_usage")
+	u := cr.client.url("customers/"+externalCustomerID+"/current_usage", customerUsageInput.query())
 
-	jsonQueryParams, err := json.Marshal(customerUsageInput)
+	result, err := get[CustomerUsageResult](ctx, cr.client, u)
 	if err != nil {
-		return nil, &Error{Err: err}
+		return nil, err
 	}
 
-	queryParams := make(map[string]string)
-	if err = json.Unmarshal(jsonQueryParams, &queryParams); err != nil {
-		return nil, &Error{Err: err}
-	}
-
-	clientRequest := &ClientRequest{
-		Path:        subPath,
-		QueryParams: queryParams,
-		Result:      &CustomerUsageResult{},
-	}
-
-	result, clientErr := cr.client.Get(ctx, clientRequest)
-	if clientErr != nil {
-		return nil, clientErr
-	}
-
-	currentUsageResult, ok := result.(*CustomerUsageResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return currentUsageResult.CustomerUsage, nil
+	return result.CustomerUsage, nil
 }
 
 func (cr *CustomerRequest) PastUsage(ctx context.Context, externalCustomerID string, customerPastUsageInput *CustomerPastUsageInput) (*CustomerPastUsageResult, *Error) {
-	subPath := fmt.Sprintf("%s/%s/%s", "customers", externalCustomerID, "past_usage")
+	u := cr.client.url("customers/"+externalCustomerID+"/past_usage", customerPastUsageInput.query())
 
-	jsonQueryParams, err := json.Marshal(customerPastUsageInput)
-	if err != nil {
-		return nil, &Error{Err: err}
-	}
-
-	queryParams := make(map[string]string)
-	if err = json.Unmarshal(jsonQueryParams, &queryParams); err != nil {
-		return nil, &Error{Err: err}
-	}
-
-	clientRequest := &ClientRequest{
-		Path:        subPath,
-		QueryParams: queryParams,
-		Result:      &CustomerPastUsageResult{},
-	}
-
-	result, clientErr := cr.client.Get(ctx, clientRequest)
-	if clientErr != nil {
-		return nil, clientErr
-	}
-
-	pastUsageResult, ok := result.(*CustomerPastUsageResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return pastUsageResult, nil
+	return get[CustomerPastUsageResult](ctx, cr.client, u)
 }
 
 func (cr *CustomerRequest) PortalUrl(ctx context.Context, externalCustomerID string) (*CustomerPortalUrl, *Error) {
-	subPath := fmt.Sprintf("%s/%s/%s", "customers", externalCustomerID, "portal_url")
-
-	clientRequest := &ClientRequest{
-		Path:   subPath,
-		Result: &CustomerPortalUrlResult{},
-	}
-
-	result, err := cr.client.Get(ctx, clientRequest)
+	u := cr.client.url("customers/"+externalCustomerID+"/portal_url", nil)
+	result, err := get[CustomerPortalUrlResult](ctx, cr.client, u)
 	if err != nil {
 		return nil, err
 	}
 
-	portalUrlResult, ok := result.(*CustomerPortalUrlResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return portalUrlResult.CustomerPortalUrl, nil
+	return result.CustomerPortalUrl, nil
 }
 
 func (cr *CustomerRequest) CheckoutUrl(ctx context.Context, externalCustomerID string) (*CustomerCheckoutUrl, *Error) {
-	subPath := fmt.Sprintf("%s/%s/%s", "customers", externalCustomerID, "checkout_url")
-
-	clientRequest := &ClientRequest{
-		Path:   subPath,
-		Result: &CustomerCheckoutUrlResult{},
-	}
-
-	result, err := cr.client.Post(ctx, clientRequest)
+	u := cr.client.url("customers/"+externalCustomerID+"/checkout_url", nil)
+	result, err := get[CustomerCheckoutUrlResult](ctx, cr.client, u)
 	if err != nil {
 		return nil, err
 	}
 
-	checkoutUrlResult, ok := result.(*CustomerCheckoutUrlResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return checkoutUrlResult.CustomerCheckoutUrl, nil
+	return result.CustomerCheckoutUrl, nil
 }
 
 func (cr *CustomerRequest) Delete(ctx context.Context, externalCustomerID string) (*Customer, *Error) {
-	subPath := fmt.Sprintf("%s/%s", "customers", externalCustomerID)
-	clientRequest := &ClientRequest{
-		Path:   subPath,
-		Result: &CustomerResult{},
-	}
-
-	result, err := cr.client.Delete(ctx, clientRequest)
+	u := cr.client.url("customers/"+externalCustomerID, nil)
+	result, err := delete[CustomerResult](ctx, cr.client, u)
 	if err != nil {
 		return nil, err
 	}
 
-	customerResult, ok := result.(*CustomerResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return customerResult.Customer, nil
+	return result.Customer, nil
 }
 
 func (cr *CustomerRequest) Get(ctx context.Context, externalCustomerID string) (*Customer, *Error) {
-	subPath := fmt.Sprintf("%s/%s", "customers", externalCustomerID)
-	clientRequest := &ClientRequest{
-		Path:   subPath,
-		Result: &CustomerResult{},
-	}
-
-	result, err := cr.client.Get(ctx, clientRequest)
+	u := cr.client.url("customers/"+externalCustomerID, nil)
+	result, err := get[CustomerResult](ctx, cr.client, u)
 	if err != nil {
 		return nil, err
 	}
 
-	customerResult, ok := result.(*CustomerResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return customerResult.Customer, nil
+	return result.Customer, nil
 }
 
 func (cr *CustomerRequest) GetList(ctx context.Context, customerListInput *CustomerListInput) (*CustomerResult, *Error) {
-	jsonQueryParams, err := json.Marshal(customerListInput)
-	if err != nil {
-		return nil, &Error{Err: err}
-	}
-
-	queryParams := make(map[string]string)
-	if err = json.Unmarshal(jsonQueryParams, &queryParams); err != nil {
-		return nil, &Error{Err: err}
-	}
-
-	clientRequest := &ClientRequest{
-		Path:        "customers",
-		QueryParams: queryParams,
-		Result:      &CustomerResult{},
-	}
-
-	result, clientErr := cr.client.Get(ctx, clientRequest)
-	if clientErr != nil {
-		return nil, clientErr
-	}
-
-	customerResult, ok := result.(*CustomerResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return customerResult, nil
+	u := cr.client.url("customers", customerListInput.query())
+	return get[CustomerResult](ctx, cr.client, u)
 }

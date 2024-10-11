@@ -2,8 +2,8 @@ package lago
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
+	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -50,6 +50,18 @@ type BillableMetricListInput struct {
 	Page    int `json:"page,omitempty,string"`
 }
 
+func (i *BillableMetricListInput) query() url.Values {
+	q := make(url.Values)
+	if i.PerPage > 0 {
+		q.Add("per_page", strconv.Itoa(i.PerPage))
+	}
+	if i.Page > 0 {
+		q.Add("page", strconv.Itoa(i.Page))
+	}
+
+	return q
+}
+
 type BillableMetricResult struct {
 	BillableMetric  *BillableMetric   `json:"billable_metric,omitempty"`
 	BillableMetrics []*BillableMetric `json:"billable_metrics,omitempty"`
@@ -84,117 +96,51 @@ func (c *Client) BillableMetric() *BillableMetricRequest {
 }
 
 func (bmr *BillableMetricRequest) Get(ctx context.Context, billableMetricCode string) (*BillableMetric, *Error) {
-	subPath := fmt.Sprintf("%s/%s", "billable_metrics", billableMetricCode)
-	clientRequest := &ClientRequest{
-		Path:   subPath,
-		Result: &BillableMetricResult{},
-	}
+	u := bmr.client.url("billable_metrics/"+billableMetricCode, nil)
 
-	result, err := bmr.client.Get(ctx, clientRequest)
+	result, err := get[BillableMetricResult](ctx, bmr.client, u)
 	if err != nil {
 		return nil, err
 	}
 
-	billableMetricResult, ok := result.(*BillableMetricResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return billableMetricResult.BillableMetric, nil
+	return result.BillableMetric, nil
 }
 
 func (bmr *BillableMetricRequest) GetList(ctx context.Context, billableMetricListInput *BillableMetricListInput) (*BillableMetricResult, *Error) {
-	jsonQueryParams, err := json.Marshal(billableMetricListInput)
-	if err != nil {
-		return nil, &Error{Err: err}
-	}
 
-	queryParams := make(map[string]string)
-	if err = json.Unmarshal(jsonQueryParams, &queryParams); err != nil {
-		return nil, &Error{Err: err}
-	}
-
-	clientRequest := &ClientRequest{
-		Path:        "billable_metrics",
-		QueryParams: queryParams,
-		Result:      &BillableMetricResult{},
-	}
-
-	result, clientErr := bmr.client.Get(ctx, clientRequest)
-	if clientErr != nil {
-		return nil, clientErr
-	}
-
-	billableMetricResult, ok := result.(*BillableMetricResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return billableMetricResult, nil
+	u := bmr.client.url("billable_metrics", billableMetricListInput.query())
+	return get[BillableMetricResult](ctx, bmr.client, u)
 }
 
 func (bmr *BillableMetricRequest) Create(ctx context.Context, billableMetricInput *BillableMetricInput) (*BillableMetric, *Error) {
+	u := bmr.client.url("billable_metrics", nil)
 
-	clientRequest := &ClientRequest{
-		Path:   "billable_metrics",
-		Result: &BillableMetricResult{},
-		Body: &BillableMetricParams{
-			BillableMetricInput: billableMetricInput,
-		},
-	}
-
-	result, err := bmr.client.Post(ctx, clientRequest)
+	result, err := post[BillableMetricParams, BillableMetricResult](ctx, bmr.client, u, &BillableMetricParams{BillableMetricInput: billableMetricInput})
 	if err != nil {
 		return nil, err
 	}
 
-	billableMetricResult, ok := result.(*BillableMetricResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return billableMetricResult.BillableMetric, nil
+	return result.BillableMetric, nil
 }
 
 func (bmr *BillableMetricRequest) Update(ctx context.Context, billableMetricInput *BillableMetricInput) (*BillableMetric, *Error) {
-	subPath := fmt.Sprintf("%s/%s", "billable_metrics", billableMetricInput.Code)
-	clientRequest := &ClientRequest{
-		Path:   subPath,
-		Result: &BillableMetricResult{},
-		Body: &BillableMetricParams{
-			BillableMetricInput: billableMetricInput,
-		},
-	}
+	u := bmr.client.url("billable_metrics/"+billableMetricInput.Code, nil)
 
-	result, err := bmr.client.Put(ctx, clientRequest)
+	result, err := put[BillableMetricParams, BillableMetricResult](ctx, bmr.client, u, &BillableMetricParams{BillableMetricInput: billableMetricInput})
 	if err != nil {
 		return nil, err
 	}
 
-	billableMetricResult, ok := result.(*BillableMetricResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return billableMetricResult.BillableMetric, nil
+	return result.BillableMetric, nil
 }
 
 func (bmr *BillableMetricRequest) Delete(ctx context.Context, billableMetricCode string) (*BillableMetric, *Error) {
-	subPath := fmt.Sprintf("%s/%s", "billable_metrics", billableMetricCode)
-	clientRequest := &ClientRequest{
-		Path:   subPath,
-		Result: &BillableMetricResult{},
-	}
+	u := bmr.client.url("billable_metrics/"+billableMetricCode, nil)
 
-	result, err := bmr.client.Delete(ctx, clientRequest)
+	result, err := delete[BillableMetricResult](ctx, bmr.client, u)
 	if err != nil {
 		return nil, err
 	}
 
-	billableMetricResult, ok := result.(*BillableMetricResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return billableMetricResult.BillableMetric, nil
+	return result.BillableMetric, nil
 }
