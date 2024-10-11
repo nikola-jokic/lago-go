@@ -2,8 +2,8 @@ package lago
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
+	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -76,6 +76,20 @@ type PlanListInput struct {
 	Page    int `json:"page,omitempty,string"`
 }
 
+func (i *PlanListInput) query() url.Values {
+	q := make(url.Values)
+
+	if i.PerPage > 0 {
+		q.Add("per_page", strconv.Itoa(i.PerPage))
+	}
+
+	if i.Page > 0 {
+		q.Add("page", strconv.Itoa(i.Page))
+	}
+
+	return q
+}
+
 type MinimumCommitment struct {
 	LagoID             uuid.UUID    `json:"lago_id"`
 	PlanCode           string       `json:"plan_code,omitempty"`
@@ -115,122 +129,47 @@ func (c *Client) Plan() *PlanRequest {
 }
 
 func (pr *PlanRequest) Get(ctx context.Context, planCode string) (*Plan, *Error) {
-	subPath := fmt.Sprintf("%s/%s", "plans", planCode)
-
-	clientRequest := &ClientRequest{
-		Path:   subPath,
-		Result: &PlanResult{},
-	}
-
-	result, err := pr.client.Get(ctx, clientRequest)
+	u := pr.client.url("plans/"+planCode, nil)
+	result, err := get[PlanResult](ctx, pr.client, u)
 	if err != nil {
 		return nil, err
 	}
 
-	planResult, ok := result.(*PlanResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return planResult.Plan, nil
+	return result.Plan, nil
 }
 
 func (pr *PlanRequest) GetList(ctx context.Context, planListInput *PlanListInput) (*PlanResult, *Error) {
-	jsonQueryParams, err := json.Marshal(planListInput)
-	if err != nil {
-		return nil, &Error{Err: err}
-	}
-
-	queryParams := make(map[string]string)
-	if err = json.Unmarshal(jsonQueryParams, &queryParams); err != nil {
-		return nil, &Error{Err: err}
-	}
-
-	clientRequest := &ClientRequest{
-		Path:        "plans",
-		QueryParams: queryParams,
-		Result:      &PlanResult{},
-	}
-
-	result, clientErr := pr.client.Get(ctx, clientRequest)
-	if clientErr != nil {
-		return nil, clientErr
-	}
-
-	planResult, ok := result.(*PlanResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return planResult, nil
+	u := pr.client.url("plans", planListInput.query())
+	return get[PlanResult](ctx, pr.client, u)
 }
 
 func (pr *PlanRequest) Create(ctx context.Context, planInput *PlanInput) (*Plan, *Error) {
-	planParams := &PlanParams{
-		Plan: planInput,
-	}
-
-	clientRequest := &ClientRequest{
-		Path:   "plans",
-		Result: &PlanResult{},
-		Body:   planParams,
-	}
-
-	result, err := pr.client.Post(ctx, clientRequest)
+	u := pr.client.url("plans", nil)
+	result, err := post[PlanParams, PlanResult](ctx, pr.client, u, &PlanParams{Plan: planInput})
 	if err != nil {
 		return nil, err
 	}
 
-	planResult, ok := result.(*PlanResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return planResult.Plan, nil
+	return result.Plan, nil
 }
 
 func (pr *PlanRequest) Update(ctx context.Context, planInput *PlanInput) (*Plan, *Error) {
-	subPath := fmt.Sprintf("%s/%s", "plans", planInput.Code)
-	planParams := &PlanParams{
-		Plan: planInput,
-	}
-
-	clientRequest := &ClientRequest{
-		Path:   subPath,
-		Result: &PlanResult{},
-		Body:   planParams,
-	}
-
-	result, err := pr.client.Put(ctx, clientRequest)
+	u := pr.client.url("plans/"+planInput.Code, nil)
+	result, err := put[PlanParams, PlanResult](ctx, pr.client, u, &PlanParams{Plan: planInput})
 	if err != nil {
 		return nil, err
 	}
 
-	planResult, ok := result.(*PlanResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return planResult.Plan, nil
+	return result.Plan, nil
 }
 
 func (pr *PlanRequest) Delete(ctx context.Context, planCode string) (*Plan, *Error) {
-	subPath := fmt.Sprintf("%s/%s", "plans", planCode)
+	u := pr.client.url("plans/"+planCode, nil)
 
-	clientRequest := &ClientRequest{
-		Path:   subPath,
-		Result: &PlanResult{},
-	}
-
-	result, err := pr.client.Delete(ctx, clientRequest)
+	result, err := delete[PlanResult](ctx, pr.client, u)
 	if err != nil {
 		return nil, err
 	}
 
-	planResult, ok := result.(*PlanResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return planResult.Plan, nil
+	return result.Plan, nil
 }

@@ -2,7 +2,8 @@ package lago
 
 import (
 	"context"
-	"encoding/json"
+	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -22,6 +23,24 @@ type PaymentRequestListInput struct {
 	Page    int `json:"page,omitempty,string"`
 
 	ExternalCustomerID string `json:"external_customer_id,omitempty"`
+}
+
+func (i *PaymentRequestListInput) query() url.Values {
+	q := make(url.Values)
+
+	if i.PerPage > 0 {
+		q.Add("per_page", strconv.Itoa(i.PerPage))
+	}
+
+	if i.Page > 0 {
+		q.Add("page", strconv.Itoa(i.Page))
+	}
+
+	if i.ExternalCustomerID != "" {
+		q.Add("external_customer_id", i.ExternalCustomerID)
+	}
+
+	return q
 }
 
 type PaymentRequest struct {
@@ -53,55 +72,16 @@ func (c *Client) PaymentRequest() *PaymentRequestRequest {
 }
 
 func (ir *PaymentRequestRequest) GetList(ctx context.Context, paymentRequestListInput *PaymentRequestListInput) (*PaymentRequestResult, *Error) {
-	jsonQueryParams, err := json.Marshal(paymentRequestListInput)
-	if err != nil {
-		return nil, &Error{Err: err}
-	}
-
-	queryParams := make(map[string]string)
-	if err = json.Unmarshal(jsonQueryParams, &queryParams); err != nil {
-		return nil, &Error{Err: err}
-	}
-
-	clientRequest := &ClientRequest{
-		Path:        "payment_requests",
-		QueryParams: queryParams,
-		Result:      &PaymentRequestResult{},
-	}
-
-	result, clientErr := ir.client.Get(ctx, clientRequest)
-	if clientErr != nil {
-		return nil, clientErr
-	}
-
-	paymentRequestResult, ok := result.(*PaymentRequestResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return paymentRequestResult, nil
+	u := ir.client.url("payment_requests", paymentRequestListInput.query())
+	return get[PaymentRequestResult](ctx, ir.client, u)
 }
 
 func (cr *PaymentRequestRequest) Create(ctx context.Context, paymentRequestInput *PaymentRequestInput) (*PaymentRequest, *Error) {
-	paymentRequestParams := &PaymentRequestParams{
-		PaymentRequest: paymentRequestInput,
-	}
-
-	clientRequest := &ClientRequest{
-		Path:   "payment_requests",
-		Result: &PaymentRequestResult{},
-		Body:   paymentRequestParams,
-	}
-
-	result, err := cr.client.Post(ctx, clientRequest)
+	u := cr.client.url("payment_requests", nil)
+	result, err := post[PaymentRequestParams, PaymentRequestResult](ctx, cr.client, u, &PaymentRequestParams{PaymentRequest: paymentRequestInput})
 	if err != nil {
 		return nil, err
 	}
 
-	paymentRequestResult, ok := result.(*PaymentRequestResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return paymentRequestResult.PaymentRequest, nil
+	return result.PaymentRequest, nil
 }

@@ -2,8 +2,9 @@ package lago
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
+	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -54,6 +55,20 @@ type CreditListInput struct {
 	PerPage            int    `json:"per_page,omitempty,string"`
 	Page               int    `json:"page,omitempty,string"`
 	ExternalCustomerID string `json:"external_customer_id,omitempty"`
+}
+
+func (i *CreditListInput) query() url.Values {
+	q := make(url.Values)
+	if i.PerPage > 0 {
+		q.Add("per_page", strconv.Itoa(i.PerPage))
+	}
+	if i.Page > 0 {
+		q.Add("page", strconv.Itoa(i.Page))
+	}
+	if i.ExternalCustomerID != "" {
+		q.Add("external_customer_id", i.ExternalCustomerID)
+	}
+	return q
 }
 
 type CreditNoteItem struct {
@@ -176,170 +191,68 @@ func (c *Client) CreditNote() *CreditNoteRequest {
 }
 
 func (cr *CreditNoteRequest) Get(ctx context.Context, creditNoteID uuid.UUID) (*CreditNote, *Error) {
-	subPath := fmt.Sprintf("%s/%s", "credit_notes", creditNoteID)
-
-	clientRequest := &ClientRequest{
-		Path:   subPath,
-		Result: &CreditNoteResult{},
-	}
-
-	result, err := cr.client.Get(ctx, clientRequest)
+	u := fmt.Sprintf("credit_notes/%s", creditNoteID)
+	result, err := get[CreditNoteResult](ctx, cr.client, u)
 	if err != nil {
 		return nil, err
 	}
-
-	creditNoteResult, ok := result.(*CreditNoteResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return creditNoteResult.CreditNote, nil
+	return result.CreditNote, nil
 }
 
 func (cr *CreditNoteRequest) Download(ctx context.Context, creditNoteID string) (*CreditNote, *Error) {
-	subPath := fmt.Sprintf("%s/%s/%s", "credit_notes", creditNoteID, "download")
-	clientRequest := &ClientRequest{
-		Path:   subPath,
-		Result: &CreditNoteResult{},
-	}
-
-	result, err := cr.client.PostWithoutBody(ctx, clientRequest)
+	u := cr.client.url("credit_notes/"+creditNoteID+"/download", nil)
+	result, err := postWithoutBody[CreditNoteResult](ctx, cr.client, u)
 	if err != nil {
 		return nil, err
 	}
 
-	if result != nil {
-		creditNoteResult, ok := result.(*CreditNoteResult)
-		if !ok {
-			return nil, &ErrorTypeAssert
-		}
-
-		return creditNoteResult.CreditNote, nil
-	}
-
-	return nil, nil
+	return result.CreditNote, nil
 }
 
 func (cr *CreditNoteRequest) GetList(ctx context.Context, creditNoteListInput *CreditListInput) (*CreditNoteResult, *Error) {
-	jsonQueryParams, err := json.Marshal(creditNoteListInput)
-	if err != nil {
-		return nil, &Error{Err: err}
-	}
-
-	queryParams := make(map[string]string)
-	if err = json.Unmarshal(jsonQueryParams, &queryParams); err != nil {
-		return nil, &Error{Err: err}
-	}
-
-	clientRequest := &ClientRequest{
-		Path:        "credit_notes",
-		QueryParams: queryParams,
-		Result:      &CreditNoteResult{},
-	}
-
-	result, clientErr := cr.client.Get(ctx, clientRequest)
-	if clientErr != nil {
-		return nil, clientErr
-	}
-
-	creditNoteResult, ok := result.(*CreditNoteResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return creditNoteResult, nil
+	u := cr.client.url("credit_notes", creditNoteListInput.query())
+	return get[CreditNoteResult](ctx, cr.client, u)
 }
 
 func (cr *CreditNoteRequest) Create(ctx context.Context, creditNoteInput *CreditNoteInput) (*CreditNote, *Error) {
-	creditNoteParams := &CreditNoteParams{
-		CreditNote: creditNoteInput,
-	}
-
-	clientRequest := &ClientRequest{
-		Path:   "credit_notes",
-		Result: &CreditNoteResult{},
-		Body:   creditNoteParams,
-	}
-
-	result, err := cr.client.Post(ctx, clientRequest)
+	u := cr.client.url("credit_notes", nil)
+	result, err := post[CreditNoteParams, CreditNoteResult](ctx, cr.client, u, &CreditNoteParams{CreditNote: creditNoteInput})
 	if err != nil {
 		return nil, err
 	}
 
-	creditNoteResult, ok := result.(*CreditNoteResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return creditNoteResult.CreditNote, nil
+	return result.CreditNote, nil
 }
 
 func (cr *CreditNoteRequest) Update(ctx context.Context, creditNoteUpdateInput *CreditNoteUpdateInput) (*CreditNote, *Error) {
-	subPath := fmt.Sprintf("%s/%s", "credit_notes", creditNoteUpdateInput.LagoID)
-	creditNoteParams := &CreditNoteUpdateParams{
-		CreditNote: creditNoteUpdateInput,
-	}
+	u := cr.client.url("credit_notes/"+creditNoteUpdateInput.LagoID, nil)
 
-	ClientRequest := &ClientRequest{
-		Path:   subPath,
-		Result: &PlanResult{},
-		Body:   creditNoteParams,
-	}
-
-	result, err := cr.client.Put(ctx, ClientRequest)
+	result, err := put[CreditNoteUpdateParams, CreditNoteResult](ctx, cr.client, u, &CreditNoteUpdateParams{CreditNote: creditNoteUpdateInput})
 	if err != nil {
 		return nil, err
 	}
 
-	creditNoteResult, ok := result.(*CreditNoteResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return creditNoteResult.CreditNote, nil
+	return result.CreditNote, nil
 }
 
 func (cr *CreditNoteRequest) Void(ctx context.Context, creditNoteID string) (*CreditNote, *Error) {
-	subPath := fmt.Sprintf("%s/%s/%s", "credit_notes", creditNoteID, "void")
+	u := cr.client.url("credit_notes/"+creditNoteID+"/void", nil)
+	result, err := putWithoutBody[CreditNoteResult](ctx, cr.client, u)
 
-	clientRequest := &ClientRequest{
-		Path:   subPath,
-		Result: &CreditNoteResult{},
-	}
-
-	result, err := cr.client.Put(ctx, clientRequest)
 	if err != nil {
 		return nil, err
 	}
 
-	creditNoteResult, ok := result.(*CreditNoteResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return creditNoteResult.CreditNote, nil
+	return result.CreditNote, nil
 }
 
 func (cr *CreditNoteRequest) Estimate(ctx context.Context, creditNoteEstimateInput *CreditNoteEstimateInput) (*CreditNoteEstimated, *Error) {
-	creditNoteEstimateParams := &CreditNoteEstimateParams{
-		CreditNote: creditNoteEstimateInput,
-	}
+	u := cr.client.url("credit_notes/estimate", nil)
 
-	clientRequest := &ClientRequest{
-		Path:   "credit_notes/estimate",
-		Result: &CreditNoteEstimatedResult{},
-		Body:   creditNoteEstimateParams,
-	}
-
-	result, err := cr.client.Post(ctx, clientRequest)
+	result, err := post[CreditNoteEstimateParams, CreditNoteEstimatedResult](ctx, cr.client, u, &CreditNoteEstimateParams{CreditNote: creditNoteEstimateInput})
 	if err != nil {
 		return nil, err
 	}
 
-	creditNoteEstimatedResult, ok := result.(*CreditNoteEstimatedResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return creditNoteEstimatedResult.CreditNoteEstimated, nil
+	return result.CreditNoteEstimated, nil
 }

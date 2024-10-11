@@ -3,7 +3,7 @@ package lago
 import (
 	"encoding/json"
 	"errors"
-	"net/http"
+	"io"
 )
 
 type ErrorCode string
@@ -12,12 +12,6 @@ const (
 	ErrorCodeAlreadyExist ErrorCode = "value_already_exist"
 	ErrorCodeInvalidValue
 )
-
-var ErrorTypeAssert = Error{
-	Err:            errors.New("type assertion failed"),
-	HTTPStatusCode: http.StatusUnprocessableEntity,
-	Message:        "Type assertion failed",
-}
 
 type ErrorDetail struct {
 	Multiple bool
@@ -100,4 +94,12 @@ func (e Error) Error() string {
 
 func (e ErrorCode) Error() string {
 	return string(e)
+}
+
+func readError(r io.Reader) *Error {
+	var e Error
+	if err := json.NewDecoder(r).Decode(&e); err != nil {
+		return &Error{Err: err}
+	}
+	return &e
 }

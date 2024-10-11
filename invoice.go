@@ -2,8 +2,8 @@ package lago
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
+	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -108,6 +108,44 @@ type InvoiceListInput struct {
 	PaymentOverdue     bool                 `json:"payment_overdue,omitempty"`
 }
 
+func (i *InvoiceListInput) query() url.Values {
+	q := make(url.Values)
+
+	if i.PerPage > 0 {
+		q.Add("per_page", strconv.Itoa(i.PerPage))
+	}
+
+	if i.Page > 0 {
+		q.Add("page", strconv.Itoa(i.Page))
+	}
+
+	if i.IssuingDateFrom != "" {
+		q.Add("issuing_date_from", i.IssuingDateFrom)
+	}
+
+	if i.IssuingDateTo != "" {
+		q.Add("issuing_date_to", i.IssuingDateTo)
+	}
+
+	if i.ExternalCustomerID != "" {
+		q.Add("external_customer_id", i.ExternalCustomerID)
+	}
+
+	if i.Status != "" {
+		q.Add("status", string(i.Status))
+	}
+
+	if i.PaymentStatus != "" {
+		q.Add("payment_status", string(i.PaymentStatus))
+	}
+
+	if i.PaymentOverdue {
+		q.Add("payment_overdue", strconv.FormatBool(i.PaymentOverdue))
+	}
+
+	return q
+}
+
 type InvoiceCreditItem struct {
 	LagoID uuid.UUID             `json:"lago_id,omitempty"`
 	Type   InvoiceCreditItemType `json:"type,omitempty"`
@@ -203,269 +241,106 @@ func (c *Client) Invoice() *InvoiceRequest {
 }
 
 func (ir *InvoiceRequest) Get(ctx context.Context, invoiceID string) (*Invoice, *Error) {
-	subPath := fmt.Sprintf("%s/%s", "invoices", invoiceID)
-	clientRequest := &ClientRequest{
-		Path:   subPath,
-		Result: &InvoiceResult{},
-	}
-
-	result, err := ir.client.Get(ctx, clientRequest)
+	u := ir.client.url("invoices/"+invoiceID, nil)
+	result, err := get[InvoiceResult](ctx, ir.client, u)
 	if err != nil {
 		return nil, err
 	}
 
-	invoiceResult, ok := result.(*InvoiceResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return invoiceResult.Invoice, nil
+	return result.Invoice, nil
 }
 
 func (ir *InvoiceRequest) GetList(ctx context.Context, invoiceListInput *InvoiceListInput) (*InvoiceResult, *Error) {
-	jsonQueryParams, err := json.Marshal(invoiceListInput)
-	if err != nil {
-		return nil, &Error{Err: err}
-	}
-
-	queryParams := make(map[string]string)
-	if err = json.Unmarshal(jsonQueryParams, &queryParams); err != nil {
-		return nil, &Error{Err: err}
-	}
-
-	clientRequest := &ClientRequest{
-		Path:        "invoices",
-		QueryParams: queryParams,
-		Result:      &InvoiceResult{},
-	}
-
-	result, clientErr := ir.client.Get(ctx, clientRequest)
-	if clientErr != nil {
-		return nil, clientErr
-	}
-
-	invoiceResult, ok := result.(*InvoiceResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return invoiceResult, nil
+	u := ir.client.url("invoices", invoiceListInput.query())
+	return get[InvoiceResult](ctx, ir.client, u)
 }
 
 func (ir *InvoiceRequest) Create(ctx context.Context, oneOffInput *InvoiceOneOffInput) (*Invoice, *Error) {
-	invoiceOneOffParams := &InvoiceOneOffParams{
-		Invoice: oneOffInput,
-	}
-
-	clientRequest := &ClientRequest{
-		Path:   "invoices",
-		Result: &InvoiceResult{},
-		Body:   invoiceOneOffParams,
-	}
-
-	result, err := ir.client.Post(ctx, clientRequest)
+	u := ir.client.url("invoices", nil)
+	result, err := post[InvoiceOneOffParams, InvoiceResult](ctx, ir.client, u, &InvoiceOneOffParams{Invoice: oneOffInput})
 	if err != nil {
 		return nil, err
 	}
 
-	invoiceResult, ok := result.(*InvoiceResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return invoiceResult.Invoice, nil
+	return result.Invoice, nil
 }
 
 func (ir *InvoiceRequest) Update(ctx context.Context, invoiceInput *InvoiceInput) (*Invoice, *Error) {
-	subPath := fmt.Sprintf("%s/%s", "invoices", invoiceInput.LagoID)
-	invoiceParams := &InvoiceParams{
-		Invoice: invoiceInput,
-	}
-
-	clientRequest := &ClientRequest{
-		Path:   subPath,
-		Result: &InvoiceResult{},
-		Body:   invoiceParams,
-	}
-
-	result, err := ir.client.Put(ctx, clientRequest)
+	u := ir.client.url("invoices/"+invoiceInput.LagoID.String(), nil)
+	result, err := put[InvoiceParams, InvoiceResult](ctx, ir.client, u, &InvoiceParams{Invoice: invoiceInput})
 	if err != nil {
 		return nil, err
 	}
 
-	invoiceResult, ok := result.(*InvoiceResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return invoiceResult.Invoice, nil
+	return result.Invoice, nil
 }
 
 func (ir *InvoiceRequest) Download(ctx context.Context, invoiceID string) (*Invoice, *Error) {
-	subPath := fmt.Sprintf("%s/%s/%s", "invoices", invoiceID, "download")
-	clientRequest := &ClientRequest{
-		Path:   subPath,
-		Result: &InvoiceResult{},
-	}
-
-	result, err := ir.client.PostWithoutBody(ctx, clientRequest)
+	u := ir.client.url("invoices/"+invoiceID+"/download", nil)
+	result, err := postWithoutBody[InvoiceResult](ctx, ir.client, u)
 	if err != nil {
 		return nil, err
 	}
 
-	if result != nil {
-		invoiceResult, ok := result.(*InvoiceResult)
-		if !ok {
-			return nil, &ErrorTypeAssert
-		}
-
-		return invoiceResult.Invoice, nil
-	}
-
-	return nil, nil
+	return result.Invoice, nil
 }
 
 func (ir *InvoiceRequest) Refresh(ctx context.Context, invoiceID string) (*Invoice, *Error) {
-	subPath := fmt.Sprintf("%s/%s/%s", "invoices", invoiceID, "refresh")
-	clientRequest := &ClientRequest{
-		Path:   subPath,
-		Result: &InvoiceResult{},
-	}
-
-	result, err := ir.client.Put(ctx, clientRequest)
+	u := ir.client.url("invoices/"+invoiceID+"/refresh", nil)
+	result, err := putWithoutBody[InvoiceResult](ctx, ir.client, u)
 	if err != nil {
 		return nil, err
 	}
 
-	if result != nil {
-		invoiceResult, ok := result.(*InvoiceResult)
-		if !ok {
-			return nil, &ErrorTypeAssert
-		}
-
-		return invoiceResult.Invoice, nil
-	}
-
-	return nil, nil
+	return result.Invoice, nil
 }
 
 func (ir *InvoiceRequest) Retry(ctx context.Context, invoiceID string) (*Invoice, *Error) {
-	subPath := fmt.Sprintf("%s/%s/%s", "invoices", invoiceID, "retry")
-	clientRequest := &ClientRequest{
-		Path:   subPath,
-		Result: &InvoiceResult{},
-	}
-
-	result, err := ir.client.Post(ctx, clientRequest)
+	u := ir.client.url("invoices/"+invoiceID+"/retry", nil)
+	result, err := postWithoutBody[InvoiceResult](ctx, ir.client, u)
 	if err != nil {
 		return nil, err
 	}
 
-	if result != nil {
-		invoiceResult, ok := result.(*InvoiceResult)
-		if !ok {
-			return nil, &ErrorTypeAssert
-		}
-
-		return invoiceResult.Invoice, nil
-	}
-
-	return nil, nil
+	return result.Invoice, nil
 }
 
 func (ir *InvoiceRequest) Finalize(ctx context.Context, invoiceID string) (*Invoice, *Error) {
-	subPath := fmt.Sprintf("%s/%s/%s", "invoices", invoiceID, "finalize")
-	clientRequest := &ClientRequest{
-		Path:   subPath,
-		Result: &InvoiceResult{},
-	}
-
-	result, err := ir.client.Put(ctx, clientRequest)
+	u := ir.client.url("invoices/"+invoiceID+"/finalize", nil)
+	result, err := putWithoutBody[InvoiceResult](ctx, ir.client, u)
 	if err != nil {
 		return nil, err
 	}
 
-	if result != nil {
-		invoiceResult, ok := result.(*InvoiceResult)
-		if !ok {
-			return nil, &ErrorTypeAssert
-		}
-
-		return invoiceResult.Invoice, nil
-	}
-
-	return nil, nil
+	return result.Invoice, nil
 }
 
 func (ir *InvoiceRequest) LoseDispute(ctx context.Context, invoiceID string) (*Invoice, *Error) {
-	subPath := fmt.Sprintf("%s/%s/%s", "invoices", invoiceID, "lose_dispute")
-	clientRequest := &ClientRequest{
-		Path:   subPath,
-		Result: &InvoiceResult{},
-	}
-
-	result, err := ir.client.Put(ctx, clientRequest)
+	u := ir.client.url("invoices/"+invoiceID+"/lose_dispute", nil)
+	result, err := putWithoutBody[InvoiceResult](ctx, ir.client, u)
 	if err != nil {
 		return nil, err
 	}
 
-	if result != nil {
-		invoiceResult, ok := result.(*InvoiceResult)
-		if !ok {
-			return nil, &ErrorTypeAssert
-		}
-
-		return invoiceResult.Invoice, nil
-	}
-
-	return nil, nil
+	return result.Invoice, nil
 }
 
 func (ir *InvoiceRequest) RetryPayment(ctx context.Context, invoiceID string) (*Invoice, *Error) {
-	subPath := fmt.Sprintf("%s/%s/%s", "invoices", invoiceID, "retry_payment")
-	clientRequest := &ClientRequest{
-		Path:   subPath,
-		Result: &InvoiceResult{},
-	}
-
-	result, err := ir.client.PostWithoutBody(ctx, clientRequest)
+	u := ir.client.url("invoices/"+invoiceID+"/retry_payment", nil)
+	result, err := postWithoutBody[InvoiceResult](ctx, ir.client, u)
 	if err != nil {
 		return nil, err
 	}
 
-	if result != nil {
-		invoiceResult, ok := result.(*InvoiceResult)
-		if !ok {
-			return nil, &ErrorTypeAssert
-		}
-
-		return invoiceResult.Invoice, nil
-	}
-
-	return nil, nil
+	return result.Invoice, nil
 }
 
 func (ir *InvoiceRequest) PaymentUrl(ctx context.Context, invoiceID string) (*InvoicePaymentUrl, *Error) {
-	subPath := fmt.Sprintf("%s/%s/%s", "invoices", invoiceID, "payment_url")
-
-	clientRequest := &ClientRequest{
-		Path:   subPath,
-		Result: &InvoicePaymentUrlResult{},
-	}
-
-	result, err := ir.client.PostWithoutBody(ctx, clientRequest)
+	u := ir.client.url("invoices/"+invoiceID+"/payment_url", nil)
+	result, err := postWithoutBody[InvoicePaymentUrlResult](ctx, ir.client, u)
 	if err != nil {
 		return nil, err
 	}
 
-	if result != nil {
-		paymentUrlResult, ok := result.(*InvoicePaymentUrlResult)
-		if !ok {
-			return nil, &ErrorTypeAssert
-		}
-
-		return paymentUrlResult.InvoicePaymentUrl, nil
-	}
-
-	return nil, nil
+	return result.InvoicePaymentUrl, nil
 }

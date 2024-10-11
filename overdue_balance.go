@@ -2,7 +2,8 @@ package lago
 
 import (
 	"context"
-	"encoding/json"
+	"net/url"
+	"strconv"
 )
 
 type OverdueBalanceRequest struct {
@@ -13,6 +14,24 @@ type OverdueBalanceListInput struct {
 	AmountCurrency     string `json:"currency,omitempty"`
 	ExternalCustomerId string `json:"external_customer_id,omitempty"`
 	Months             int    `json:"months,omitempty,string"`
+}
+
+func (i *OverdueBalanceListInput) query() url.Values {
+	q := make(url.Values)
+
+	if i.AmountCurrency != "" {
+		q.Add("currency", i.AmountCurrency)
+	}
+
+	if i.ExternalCustomerId != "" {
+		q.Add("external_customer_id", i.ExternalCustomerId)
+	}
+
+	if i.Months > 0 {
+		q.Add("months", strconv.Itoa(i.Months))
+	}
+
+	return q
 }
 
 type OverdueBalanceResult struct {
@@ -33,31 +52,6 @@ func (c *Client) OverdueBalance() *OverdueBalanceRequest {
 }
 
 func (adr *OverdueBalanceRequest) GetList(ctx context.Context, OverdueBalanceListInput *OverdueBalanceListInput) (*OverdueBalanceResult, *Error) {
-	jsonQueryparams, err := json.Marshal(OverdueBalanceListInput)
-	if err != nil {
-		return nil, &Error{Err: err}
-	}
-
-	queryParams := make(map[string]string)
-	if err = json.Unmarshal(jsonQueryparams, &queryParams); err != nil {
-		return nil, &Error{Err: err}
-	}
-
-	clientRequest := &ClientRequest{
-		Path:        "analytics/overdue_balance",
-		QueryParams: queryParams,
-		Result:      &OverdueBalanceResult{},
-	}
-
-	result, clientErr := adr.client.Get(ctx, clientRequest)
-	if clientErr != nil {
-		return nil, clientErr
-	}
-
-	OverdueBalanceResult, ok := result.(*OverdueBalanceResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return OverdueBalanceResult, nil
+	u := adr.client.url("analytics/overdue_balance", OverdueBalanceListInput.query())
+	return get[OverdueBalanceResult](ctx, adr.client, u)
 }

@@ -2,8 +2,8 @@ package lago
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
+	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -43,6 +43,36 @@ type WalletTransactionListInput struct {
 	Status            WalletTransactionStatus `json:"status,omitempty"`
 	TransactionStatus TransactionStatus       `json:"transaction_status,omitempty"`
 	TransactionType   TransactionType         `json:"transaction_type,omitempty"`
+}
+
+func (i *WalletTransactionListInput) query() url.Values {
+	q := make(url.Values)
+
+	if i.PerPage > 0 {
+		q.Add("per_page", strconv.Itoa(i.PerPage))
+	}
+
+	if i.Page > 0 {
+		q.Add("page", strconv.Itoa(i.Page))
+	}
+
+	if i.WalletID != "" {
+		q.Add("wallet_id", i.WalletID)
+	}
+
+	if i.Status != "" {
+		q.Add("status", string(i.Status))
+	}
+
+	if i.TransactionStatus != "" {
+		q.Add("transaction_status", string(i.TransactionStatus))
+	}
+
+	if i.TransactionType != "" {
+		q.Add("transaction_type", string(i.TransactionType))
+	}
+
+	return q
 }
 
 type WalletTransactionParams struct {
@@ -88,55 +118,11 @@ func (c *Client) WalletTransaction() *WalletTransactionRequest {
 }
 
 func (wtr *WalletTransactionRequest) Create(ctx context.Context, walletTransactionInput *WalletTransactionInput) (*WalletTransactionResult, *Error) {
-	walletTransactionParams := &WalletTransactionParams{
-		WalletTransactionInput: walletTransactionInput,
-	}
-
-	clientRequest := &ClientRequest{
-		Path:   "wallet_transactions",
-		Result: &WalletTransactionResult{},
-		Body:   walletTransactionParams,
-	}
-	result, err := wtr.client.Post(ctx, clientRequest)
-	if err != nil {
-		return nil, err
-	}
-
-	walletTransactionResult, ok := result.(*WalletTransactionResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return walletTransactionResult, nil
+	u := wtr.client.url("wallet_transactions", nil)
+	return post[WalletTransactionParams, WalletTransactionResult](ctx, wtr.client, u, &WalletTransactionParams{WalletTransactionInput: walletTransactionInput})
 }
 
 func (wtr *WalletTransactionRequest) GetList(ctx context.Context, walletTransactionListInput *WalletTransactionListInput) (*WalletTransactionResult, *Error) {
-	jsonQueryParams, err := json.Marshal(walletTransactionListInput)
-	if err != nil {
-		return nil, &Error{Err: err}
-	}
-
-	queryParams := make(map[string]string)
-	if err = json.Unmarshal(jsonQueryParams, &queryParams); err != nil {
-		return nil, &Error{Err: err}
-	}
-
-	subPath := fmt.Sprintf("%s/%s/%s", "wallets", walletTransactionListInput.WalletID, "wallet_transactions")
-	clientRequest := &ClientRequest{
-		Path:        subPath,
-		QueryParams: queryParams,
-		Result:      &WalletTransactionResult{},
-	}
-
-	result, clientErr := wtr.client.Get(ctx, clientRequest)
-	if clientErr != nil {
-		return nil, clientErr
-	}
-
-	walletTransactionResult, ok := result.(*WalletTransactionResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return walletTransactionResult, nil
+	u := wtr.client.url("wallets/"+walletTransactionListInput.WalletID+"/wallet_transactions", walletTransactionListInput.query())
+	return get[WalletTransactionResult](ctx, wtr.client, u)
 }

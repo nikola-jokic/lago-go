@@ -2,7 +2,8 @@ package lago
 
 import (
 	"context"
-	"encoding/json"
+	"net/url"
+	"strconv"
 )
 
 type InvoicedUsageRequest struct {
@@ -12,6 +13,20 @@ type InvoicedUsageRequest struct {
 type InvoicedUsageListInput struct {
 	AmountCurrency string `json:"currency,omitempty"`
 	Months         int    `json:"months,omitempty,string"`
+}
+
+func (i *InvoicedUsageListInput) query() url.Values {
+	q := make(url.Values)
+
+	if i.AmountCurrency != "" {
+		q.Add("currency", i.AmountCurrency)
+	}
+
+	if i.Months > 0 {
+		q.Add("months", strconv.Itoa(i.Months))
+	}
+
+	return q
 }
 
 type InvoicedUsageResult struct {
@@ -33,31 +48,6 @@ func (c *Client) InvoicedUsage() *InvoicedUsageRequest {
 }
 
 func (adr *InvoicedUsageRequest) GetList(ctx context.Context, InvoicedUsageListInput *InvoicedUsageListInput) (*InvoicedUsageResult, *Error) {
-	jsonQueryparams, err := json.Marshal(InvoicedUsageListInput)
-	if err != nil {
-		return nil, &Error{Err: err}
-	}
-
-	queryParams := make(map[string]string)
-	if err = json.Unmarshal(jsonQueryparams, &queryParams); err != nil {
-		return nil, &Error{Err: err}
-	}
-
-	clientRequest := &ClientRequest{
-		Path:        "analytics/invoiced_usage",
-		QueryParams: queryParams,
-		Result:      &InvoicedUsageResult{},
-	}
-
-	result, clientErr := adr.client.Get(ctx, clientRequest)
-	if clientErr != nil {
-		return nil, clientErr
-	}
-
-	InvoicedUsageResult, ok := result.(*InvoicedUsageResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return InvoicedUsageResult, nil
+	u := adr.client.url("analytics/invoiced_usage", InvoicedUsageListInput.query())
+	return get[InvoicedUsageResult](ctx, adr.client, u)
 }

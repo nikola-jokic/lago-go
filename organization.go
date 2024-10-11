@@ -98,25 +98,11 @@ func (c *Client) Organization() *OrganizationRequest {
 }
 
 func (or *OrganizationRequest) Update(ctx context.Context, organizationInput *OrganizationInput) (*Organization, *Error) {
-	organizationParams := &OrganizationParams{
-		Organization: organizationInput,
-	}
-
-	clientRequest := &ClientRequest{
-		Path:   "organizations",
-		Result: &OrganizationResult{},
-		Body:   organizationParams,
-	}
-
-	result, err := or.client.Put(ctx, clientRequest)
+	u := or.client.url("organizations", nil)
+	result, err := put[OrganizationParams, OrganizationResult](ctx, or.client, u, &OrganizationParams{Organization: organizationInput})
 	if err != nil {
 		return nil, err
 	}
 
-	organizationResult, ok := result.(*OrganizationResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return organizationResult.Organization, nil
+	return result.Organization, nil
 }

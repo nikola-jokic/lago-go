@@ -24,26 +24,13 @@ func (c *Client) Webhook() *WebhookRequest {
 }
 
 func (wr *WebhookRequest) GetPublicKey(ctx context.Context) (*rsa.PublicKey, *Error) {
-	clientRequest := &ClientRequest{
-		Path: "webhooks/public_key",
-	}
-
-	result, err := wr.client.Get(ctx, clientRequest)
+	u := wr.client.url("webhooks/public_key", nil)
+	result, err := get[string](ctx, wr.client, u)
 	if err != nil {
 		return nil, err
 	}
-
-	validatedResult, ok := result.(string)
-	if !ok {
-		return nil, &Error{
-			Err:            errors.New("response is not a string"),
-			HTTPStatusCode: http.StatusInternalServerError,
-			Message:        "response is not a string",
-		}
-	}
-
 	// Decode the base64-encoded key
-	bytesResult, decodeErr := base64.StdEncoding.DecodeString(validatedResult)
+	bytesResult, decodeErr := base64.StdEncoding.DecodeString(*result)
 	if decodeErr != nil {
 		return nil, &Error{
 			Err:            decodeErr,

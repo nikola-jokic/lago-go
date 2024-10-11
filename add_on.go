@@ -2,8 +2,8 @@ package lago
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
+	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -34,6 +34,17 @@ type AddOnListInput struct {
 	Page    int `json:"page,omitempty,string"`
 }
 
+func (i *AddOnListInput) query() url.Values {
+	q := make(url.Values)
+	if i.PerPage > 0 {
+		q.Add("per_page", strconv.Itoa(i.PerPage))
+	}
+	if i.Page > 0 {
+		q.Add("page", strconv.Itoa(i.Page))
+	}
+	return q
+}
+
 type AddOnResult struct {
 	AddOn  *AddOn   `json:"add_on,omitempty"`
 	AddOns []*AddOn `json:"add_ons,omitempty"`
@@ -62,121 +73,46 @@ func (c *Client) AddOn() *AddOnRequest {
 }
 
 func (adr *AddOnRequest) Get(ctx context.Context, addOnCode string) (*AddOn, *Error) {
-	subPath := fmt.Sprintf("%s/%s", "add_ons", addOnCode)
-	clientRequest := &ClientRequest{
-		Path:   subPath,
-		Result: &AddOnResult{},
-	}
-
-	result, err := adr.client.Get(ctx, clientRequest)
+	u := adr.client.url("add_ons/"+addOnCode, nil)
+	result, err := get[AddOnResult](ctx, adr.client, u)
 	if err != nil {
 		return nil, err
 	}
-
-	addOnResult, ok := result.(*AddOnResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return addOnResult.AddOn, nil
+	return result.AddOn, nil
 }
 
 func (adr *AddOnRequest) GetList(ctx context.Context, addOnListInput *AddOnListInput) (*AddOnResult, *Error) {
-	jsonQueryparams, err := json.Marshal(addOnListInput)
-	if err != nil {
-		return nil, &Error{Err: err}
-	}
+	u := adr.client.url("add_ons", addOnListInput.query())
 
-	queryParams := make(map[string]string)
-	if err = json.Unmarshal(jsonQueryparams, &queryParams); err != nil {
-		return nil, &Error{Err: err}
-	}
-
-	clientRequest := &ClientRequest{
-		Path:        "add_ons",
-		QueryParams: queryParams,
-		Result:      &AddOnResult{},
-	}
-
-	result, clientErr := adr.client.Get(ctx, clientRequest)
-	if clientErr != nil {
-		return nil, clientErr
-	}
-
-	addOnResult, ok := result.(*AddOnResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return addOnResult, nil
+	return get[AddOnResult](ctx, adr.client, u)
 }
 
 func (adr *AddOnRequest) Create(ctx context.Context, addOnInput *AddOnInput) (*AddOn, *Error) {
-	addOnParams := &AddOnParams{
-		AddOn: addOnInput,
-	}
-
-	clientRequest := &ClientRequest{
-		Path:   "add_ons",
-		Result: &AddOnResult{},
-		Body:   addOnParams,
-	}
-
-	result, err := adr.client.Post(ctx, clientRequest)
+	u := adr.client.url("add_ons", nil)
+	result, err := post[AddOnParams, AddOnResult](ctx, adr.client, u, &AddOnParams{AddOn: addOnInput})
 	if err != nil {
 		return nil, err
 	}
 
-	addOnResult, ok := result.(*AddOnResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return addOnResult.AddOn, nil
+	return result.AddOn, nil
 }
 
 func (adr *AddOnRequest) Update(ctx context.Context, addOnInput *AddOnInput) (*AddOn, *Error) {
-	subPath := fmt.Sprintf("%s/%s", "add_ons", addOnInput.Code)
-	addOnParams := &AddOnParams{
-		AddOn: addOnInput,
-	}
+	u := adr.client.url("add_ons/"+addOnInput.Code, nil)
 
-	clientRequest := &ClientRequest{
-		Path:   subPath,
-		Result: &AddOnResult{},
-		Body:   addOnParams,
-	}
-
-	result, err := adr.client.Put(ctx, clientRequest)
+	result, err := put[AddOnParams, AddOnResult](ctx, adr.client, u, &AddOnParams{AddOn: addOnInput})
 	if err != nil {
 		return nil, err
 	}
 
-	addOnResult, ok := result.(*AddOnResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return addOnResult.AddOn, nil
+	return result.AddOn, nil
 }
 
 func (adr *AddOnRequest) Delete(ctx context.Context, addOnCode string) (*AddOn, *Error) {
-	subPath := fmt.Sprintf("%s/%s", "add_ons", addOnCode)
-
-	clientRequest := &ClientRequest{
-		Path:   subPath,
-		Result: &AddOnResult{},
-	}
-
-	result, err := adr.client.Delete(ctx, clientRequest)
+	u := adr.client.url("add_ons/"+addOnCode, nil)
+	result, err := delete[AddOnResult](ctx, adr.client, u)
 	if err != nil {
 		return nil, err
 	}
-
-	addOnResult, ok := result.(*AddOnResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return addOnResult.AddOn, nil
+	return result.AddOn, nil
 }

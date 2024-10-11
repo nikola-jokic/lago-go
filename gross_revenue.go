@@ -2,7 +2,8 @@ package lago
 
 import (
 	"context"
-	"encoding/json"
+	"net/url"
+	"strconv"
 )
 
 type GrossRevenueRequest struct {
@@ -13,6 +14,24 @@ type GrossRevenueListInput struct {
 	AmountCurrency     string `json:"currency,omitempty"`
 	ExternalCustomerId string `json:"external_customer_id,omitempty"`
 	Months             int    `json:"months,omitempty,string"`
+}
+
+func (i *GrossRevenueListInput) query() url.Values {
+	q := make(url.Values)
+
+	if i.AmountCurrency != "" {
+		q.Add("currency", i.AmountCurrency)
+	}
+
+	if i.ExternalCustomerId != "" {
+		q.Add("external_customer_id", i.ExternalCustomerId)
+	}
+
+	if i.Months > 0 {
+		q.Add("months", strconv.Itoa(i.Months))
+	}
+
+	return q
 }
 
 type GrossRevenueResult struct {
@@ -34,31 +53,6 @@ func (c *Client) GrossRevenue() *GrossRevenueRequest {
 }
 
 func (adr *GrossRevenueRequest) GetList(ctx context.Context, GrossRevenueListInput *GrossRevenueListInput) (*GrossRevenueResult, *Error) {
-	jsonQueryparams, err := json.Marshal(GrossRevenueListInput)
-	if err != nil {
-		return nil, &Error{Err: err}
-	}
-
-	queryParams := make(map[string]string)
-	if err = json.Unmarshal(jsonQueryparams, &queryParams); err != nil {
-		return nil, &Error{Err: err}
-	}
-
-	clientRequest := &ClientRequest{
-		Path:        "analytics/gross_revenue",
-		QueryParams: queryParams,
-		Result:      &GrossRevenueResult{},
-	}
-
-	result, clientErr := adr.client.Get(ctx, clientRequest)
-	if clientErr != nil {
-		return nil, clientErr
-	}
-
-	GrossRevenueResult, ok := result.(*GrossRevenueResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return GrossRevenueResult, nil
+	u := adr.client.url("analytics/gross_revenue", GrossRevenueListInput.query())
+	return get[GrossRevenueResult](ctx, adr.client, u)
 }

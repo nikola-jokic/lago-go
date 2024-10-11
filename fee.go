@@ -2,8 +2,8 @@ package lago
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
+	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -74,6 +74,76 @@ type FeeListInput struct {
 	SucceededAtTo   string `json:"succeeded_at_to,omitempty"`
 	RefundedAtFrom  string `json:"refunded_at_from,omitempty"`
 	RefundedAtTo    string `json:"refunded_at_to,omitempty"`
+}
+
+func (i *FeeListInput) query() url.Values {
+	q := make(url.Values)
+
+	if i.PerPage > 0 {
+		q.Add("per_page", strconv.Itoa(i.PerPage))
+	}
+
+	if i.Page > 0 {
+		q.Add("page", strconv.Itoa(i.Page))
+	}
+
+	if i.FeeType != "" {
+		q.Add("fee_type", string(i.FeeType))
+	}
+
+	if i.PaymentStatus != "" {
+		q.Add("payment_status", string(i.PaymentStatus))
+	}
+
+	if i.ExternalSubscriptionID != "" {
+		q.Add("external_subscription_id", i.ExternalSubscriptionID)
+	}
+
+	if i.ExternalCustomerID != "" {
+		q.Add("external_customer_id", i.ExternalCustomerID)
+	}
+
+	if i.BillableMetricCode != "" {
+		q.Add("billable_metric_code", i.BillableMetricCode)
+	}
+
+	if i.Currency != "" {
+		q.Add("currency", string(i.Currency))
+	}
+
+	if i.CreatedAtFrom != "" {
+		q.Add("created_at_from", i.CreatedAtFrom)
+	}
+
+	if i.CreatedAtTo != "" {
+		q.Add("created_at_to", i.CreatedAtTo)
+	}
+
+	if i.FailedAtFrom != "" {
+		q.Add("failed_at_from", i.FailedAtFrom)
+	}
+
+	if i.FailedAtTo != "" {
+		q.Add("failed_at_to", i.FailedAtTo)
+	}
+
+	if i.SucceededAtFrom != "" {
+		q.Add("succeeded_at_from", i.SucceededAtFrom)
+	}
+
+	if i.SucceededAtTo != "" {
+		q.Add("succeeded_at_to", i.SucceededAtTo)
+	}
+
+	if i.RefundedAtFrom != "" {
+		q.Add("refunded_at_from", i.RefundedAtFrom)
+	}
+
+	if i.RefundedAtTo != "" {
+		q.Add("refunded_at_to", i.RefundedAtTo)
+	}
+
+	return q
 }
 
 type FeeItem struct {
@@ -148,96 +218,36 @@ func (c *Client) Fee() *FeeRequest {
 }
 
 func (fr *FeeRequest) Get(ctx context.Context, feeID string) (*Fee, *Error) {
-	subPath := fmt.Sprintf("%s/%s", "fees", feeID)
-	clientRequest := &ClientRequest{
-		Path:   subPath,
-		Result: &FeeResult{},
-	}
-
-	result, err := fr.client.Get(ctx, clientRequest)
+	u := fr.client.url("fees/"+feeID, nil)
+	result, err := get[FeeResult](ctx, fr.client, u)
 	if err != nil {
 		return nil, err
 	}
 
-	feeResult, ok := result.(*FeeResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return feeResult.Fee, nil
+	return result.Fee, nil
 }
 
 func (fr *FeeRequest) Update(ctx context.Context, feeInput *FeeUpdateInput) (*Fee, *Error) {
-	subPath := fmt.Sprintf("%s/%s", "fees", feeInput.LagoID)
-	feeParams := &FeeUpdateParams{
-		Fee: feeInput,
-	}
-
-	clientRequest := &ClientRequest{
-		Path:   subPath,
-		Result: &FeeResult{},
-		Body:   feeParams,
-	}
-
-	result, err := fr.client.Put(ctx, clientRequest)
+	u := fr.client.url("fees/"+feeInput.LagoID.String(), nil)
+	result, err := put[FeeUpdateParams, FeeResult](ctx, fr.client, u, &FeeUpdateParams{Fee: feeInput})
 	if err != nil {
 		return nil, err
 	}
 
-	feeResult, ok := result.(*FeeResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return feeResult.Fee, nil
+	return result.Fee, nil
 }
 
 func (fr *FeeRequest) GetList(ctx context.Context, feeListInput *FeeListInput) (*FeeResult, *Error) {
-	jsonQueryParams, err := json.Marshal(feeListInput)
-	if err != nil {
-		return nil, &Error{Err: err}
-	}
-
-	queryParams := make(map[string]string)
-	if err = json.Unmarshal(jsonQueryParams, &queryParams); err != nil {
-		return nil, &Error{Err: err}
-	}
-
-	clientRequest := &ClientRequest{
-		Path:        "fees",
-		QueryParams: queryParams,
-		Result:      &FeeResult{},
-	}
-
-	result, clientErr := fr.client.Get(ctx, clientRequest)
-	if clientErr != nil {
-		return nil, clientErr
-	}
-
-	feeResult, ok := result.(*FeeResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return feeResult, nil
+	u := fr.client.url("fees", feeListInput.query())
+	return get[FeeResult](ctx, fr.client, u)
 }
 
 func (fr *FeeRequest) Delete(ctx context.Context, feeID string) (*Fee, *Error) {
-	subPath := fmt.Sprintf("%s/%s", "fees", feeID)
-	clientRequest := &ClientRequest{
-		Path:   subPath,
-		Result: &FeeResult{},
-	}
-
-	result, err := fr.client.Delete(ctx, clientRequest)
+	u := fr.client.url("fees/"+feeID, nil)
+	result, err := delete[FeeResult](ctx, fr.client, u)
 	if err != nil {
 		return nil, err
 	}
 
-	feeResult, ok := result.(*FeeResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return feeResult.Fee, nil
+	return result.Fee, nil
 }

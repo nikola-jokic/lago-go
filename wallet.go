@@ -2,8 +2,8 @@ package lago
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
+	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -72,6 +72,24 @@ type WalletListInput struct {
 	ExternalCustomerID string `json:"external_customer_id,omitempty"`
 }
 
+func (i *WalletListInput) query() url.Values {
+	q := make(url.Values)
+
+	if i.PerPage > 0 {
+		q.Add("per_page", strconv.Itoa(i.PerPage))
+	}
+
+	if i.Page > 0 {
+		q.Add("page", strconv.Itoa(i.Page))
+	}
+
+	if i.ExternalCustomerID != "" {
+		q.Add("external_customer_id", i.ExternalCustomerID)
+	}
+
+	return q
+}
+
 type WalletResult struct {
 	Wallet  *Wallet   `json:"wallet,omitempty"`
 	Wallets []*Wallet `json:"wallets,omitempty"`
@@ -109,120 +127,46 @@ func (c *Client) Wallet() *WalletRequest {
 }
 
 func (bmr *WalletRequest) Get(ctx context.Context, walletID string) (*Wallet, *Error) {
-	subPath := fmt.Sprintf("%s/%s", "wallets", walletID)
-	clientRequest := &ClientRequest{
-		Path:   subPath,
-		Result: &WalletResult{},
-	}
-
-	result, err := bmr.client.Get(ctx, clientRequest)
+	u := bmr.client.url("wallets/"+walletID, nil)
+	result, err := get[WalletResult](ctx, bmr.client, u)
 	if err != nil {
 		return nil, err
 	}
 
-	walletResult, ok := result.(*WalletResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return walletResult.Wallet, nil
+	return result.Wallet, nil
 }
 
 func (bmr *WalletRequest) GetList(ctx context.Context, walletListInput *WalletListInput) (*WalletResult, *Error) {
-	jsonQueryParams, err := json.Marshal(walletListInput)
-	if err != nil {
-		return nil, &Error{Err: err}
-	}
-
-	queryParams := make(map[string]string)
-	if err = json.Unmarshal(jsonQueryParams, &queryParams); err != nil {
-		return nil, &Error{Err: err}
-	}
-
-	clientRequest := &ClientRequest{
-		Path:        "wallets",
-		QueryParams: queryParams,
-		Result:      &WalletResult{},
-	}
-
-	result, clientErr := bmr.client.Get(ctx, clientRequest)
-	if clientErr != nil {
-		return nil, clientErr
-	}
-
-	walletResult, ok := result.(*WalletResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return walletResult, nil
+	u := bmr.client.url("wallets", walletListInput.query())
+	return get[WalletResult](ctx, bmr.client, u)
 }
 
 func (bmr *WalletRequest) Create(ctx context.Context, walletInput *WalletInput) (*Wallet, *Error) {
-	walletParams := &WalletParams{
-		WalletInput: walletInput,
-	}
-
-	clientRequest := &ClientRequest{
-		Path:   "wallets",
-		Result: &WalletResult{},
-		Body:   walletParams,
-	}
-
-	result, err := bmr.client.Post(ctx, clientRequest)
+	u := bmr.client.url("wallets", nil)
+	result, err := post[WalletParams, WalletResult](ctx, bmr.client, u, &WalletParams{WalletInput: walletInput})
 	if err != nil {
 		return nil, err
 	}
 
-	walletResult, ok := result.(*WalletResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return walletResult.Wallet, nil
+	return result.Wallet, nil
 }
 
 func (bmr *WalletRequest) Update(ctx context.Context, walletInput *WalletInput, walletID string) (*Wallet, *Error) {
-	walletParams := &WalletParams{
-		WalletInput: walletInput,
-	}
-
-	subPath := fmt.Sprintf("%s/%s", "wallets", walletID)
-	clientRequest := &ClientRequest{
-		Path:   subPath,
-		Result: &WalletResult{},
-		Body:   walletParams,
-	}
-
-	result, err := bmr.client.Put(ctx, clientRequest)
+	u := bmr.client.url("wallets/"+walletID, nil)
+	result, err := put[WalletParams, WalletResult](ctx, bmr.client, u, &WalletParams{WalletInput: walletInput})
 	if err != nil {
 		return nil, err
 	}
 
-	walletResult, ok := result.(*WalletResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return walletResult.Wallet, nil
+	return result.Wallet, nil
 }
 
 func (bmr *WalletRequest) Delete(ctx context.Context, walletID string) (*Wallet, *Error) {
-	subPath := fmt.Sprintf("%s/%s", "wallets", walletID)
-	clientRequest := &ClientRequest{
-		Path:   subPath,
-		Result: &WalletResult{},
-	}
-
-	result, err := bmr.client.Delete(ctx, clientRequest)
+	u := bmr.client.url("wallets/"+walletID, nil)
+	result, err := delete[WalletResult](ctx, bmr.client, u)
 	if err != nil {
 		return nil, err
 	}
 
-	walletResult, ok := result.(*WalletResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return walletResult.Wallet, nil
+	return result.Wallet, nil
 }

@@ -2,8 +2,8 @@ package lago
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
+	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -85,12 +85,52 @@ type SubscriptionTerminateInput struct {
 	Status     string `json:"status,omitempty"`
 }
 
+func (i *SubscriptionTerminateInput) query() url.Values {
+	q := make(url.Values)
+
+	if i.ExternalID != "" {
+		q.Add("external_id", i.ExternalID)
+	}
+
+	if i.Status != "" {
+		q.Add("status", i.Status)
+	}
+
+	return q
+}
+
 type SubscriptionListInput struct {
-	ExternalCustomerID string   `json:"external_customer_id,omitempty"`
-	PlanCode           string   `json:"plan_code,omitempty"`
-	PerPage            int      `json:"per_page,omitempty,string"`
-	Page               int      `json:"page,omitempty,string"`
-	Status             []string `json:"status,omitempty"`
+	ExternalCustomerID string               `json:"external_customer_id,omitempty"`
+	PlanCode           string               `json:"plan_code,omitempty"`
+	PerPage            int                  `json:"per_page,omitempty,string"`
+	Page               int                  `json:"page,omitempty,string"`
+	Status             []SubscriptionStatus `json:"status,omitempty"`
+}
+
+func (i *SubscriptionListInput) query() url.Values {
+	q := make(url.Values)
+
+	if i.ExternalCustomerID != "" {
+		q.Add("external_customer_id", i.ExternalCustomerID)
+	}
+
+	if i.PlanCode != "" {
+		q.Add("plan_code", i.PlanCode)
+	}
+
+	if i.PerPage > 0 {
+		q.Add("per_page", strconv.Itoa(i.PerPage))
+	}
+
+	if i.Page > 0 {
+		q.Add("page", strconv.Itoa(i.Page))
+	}
+
+	for _, status := range i.Status {
+		q.Add("status[]", string(status))
+	}
+
+	return q
 }
 
 type Subscription struct {
@@ -128,133 +168,46 @@ func (c *Client) Subscription() *SubscriptionRequest {
 }
 
 func (sr *SubscriptionRequest) Create(ctx context.Context, subscriptionInput *SubscriptionInput) (*Subscription, *Error) {
-	subscriptionParam := &SubscriptionParams{
-		Subscription: subscriptionInput,
-	}
-
-	clientRequest := &ClientRequest{
-		Path:   "subscriptions",
-		Result: &SubscriptionResult{},
-		Body:   subscriptionParam,
-	}
-
-	result, err := sr.client.Post(ctx, clientRequest)
+	u := sr.client.url("subscriptions", nil)
+	result, err := post[SubscriptionParams, SubscriptionResult](ctx, sr.client, u, &SubscriptionParams{Subscription: subscriptionInput})
 	if err != nil {
 		return nil, err
 	}
 
-	subscriptionResult, ok := result.(*SubscriptionResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return subscriptionResult.Subscription, nil
+	return result.Subscription, nil
 }
 
 func (sr *SubscriptionRequest) Terminate(ctx context.Context, subscriptionTerminateInput SubscriptionTerminateInput) (*Subscription, *Error) {
-	jsonQueryParams, err := json.Marshal(subscriptionTerminateInput)
+	u := sr.client.url("subscriptions/"+subscriptionTerminateInput.ExternalID, subscriptionTerminateInput.query())
+	result, err := delete[SubscriptionResult](ctx, sr.client, u)
 	if err != nil {
-		return nil, &Error{Err: err}
+		return nil, err
 	}
 
-	subPath := fmt.Sprintf("%s/%s", "subscriptions", subscriptionTerminateInput.ExternalID)
-
-	queryParams := make(map[string]string)
-	if err = json.Unmarshal(jsonQueryParams, &queryParams); err != nil {
-		return nil, &Error{Err: err}
-	}
-
-	clientRequest := &ClientRequest{
-		Path:        subPath,
-		QueryParams: queryParams,
-		Result:      &SubscriptionResult{},
-	}
-
-	result, clientErr := sr.client.Delete(ctx, clientRequest)
-	if clientErr != nil {
-		return nil, clientErr
-	}
-
-	subscriptionResult, ok := result.(*SubscriptionResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return subscriptionResult.Subscription, nil
+	return result.Subscription, nil
 }
 
 func (sr *SubscriptionRequest) Get(ctx context.Context, subscriptionExternalId string) (*Subscription, *Error) {
-	subPath := fmt.Sprintf("%s/%s", "subscriptions", subscriptionExternalId)
-
-	clientRequest := &ClientRequest{
-		Path:   subPath,
-		Result: &SubscriptionResult{},
-	}
-
-	result, err := sr.client.Get(ctx, clientRequest)
+	u := sr.client.url("subscriptions/"+subscriptionExternalId, nil)
+	result, err := get[SubscriptionResult](ctx, sr.client, u)
 	if err != nil {
 		return nil, err
 	}
 
-	subscriptionResult, ok := result.(*SubscriptionResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return subscriptionResult.Subscription, nil
+	return result.Subscription, nil
 }
 
 func (sr *SubscriptionRequest) GetList(ctx context.Context, subscriptionListInput SubscriptionListInput) (*SubscriptionResult, *Error) {
-	jsonQueryParams, err := json.Marshal(subscriptionListInput)
-	if err != nil {
-		return nil, &Error{Err: err}
-	}
-
-	queryParams := make(map[string]string)
-	if err = json.Unmarshal(jsonQueryParams, &queryParams); err != nil {
-		return nil, &Error{Err: err}
-	}
-
-	clientRequest := &ClientRequest{
-		Path:        "subscriptions",
-		QueryParams: queryParams,
-		Result:      &SubscriptionResult{},
-	}
-
-	result, clientErr := sr.client.Get(ctx, clientRequest)
-	if clientErr != nil {
-		return nil, clientErr
-	}
-
-	subscriptionResult, ok := result.(*SubscriptionResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return subscriptionResult, nil
+	u := sr.client.url("subscriptions", subscriptionListInput.query())
+	return get[SubscriptionResult](ctx, sr.client, u)
 }
 
 func (sr *SubscriptionRequest) Update(ctx context.Context, subscriptionInput *SubscriptionInput) (*Subscription, *Error) {
-	subPath := fmt.Sprintf("%s/%s", "subscriptions", subscriptionInput.ExternalID)
-	subscriptionParam := &SubscriptionParams{
-		Subscription: subscriptionInput,
-	}
-
-	clientRequest := &ClientRequest{
-		Path:   subPath,
-		Result: &SubscriptionResult{},
-		Body:   subscriptionParam,
-	}
-
-	result, err := sr.client.Put(ctx, clientRequest)
+	u := sr.client.url("subscriptions/"+subscriptionInput.ExternalID, nil)
+	result, err := put[SubscriptionParams, SubscriptionResult](ctx, sr.client, u, &SubscriptionParams{Subscription: subscriptionInput})
 	if err != nil {
 		return nil, err
 	}
 
-	subscriptionResult, ok := result.(*SubscriptionResult)
-	if !ok {
-		return nil, &ErrorTypeAssert
-	}
-
-	return subscriptionResult.Subscription, nil
+	return result.Subscription, nil
 }
