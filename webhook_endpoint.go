@@ -76,7 +76,12 @@ func (c *Client) ListWebhookEndpoints(ctx context.Context, webhookEndpointListIn
 func (c *Client) CreateWebhookEndpoint(ctx context.Context, webhookEndpointInput *WebhookEndpointInput) (*WebhookEndpoint, *Error) {
 	u := c.url("webhook_endpoints", nil)
 
-	result, err := post[webhookEndpointParams, webhookEndpointResult](ctx, c, u, &webhookEndpointParams{WebhookEndpointInput: webhookEndpointInput})
+	result, err := post[webhookEndpointParams, webhookEndpointResult](
+		ctx,
+		c,
+		u,
+		&webhookEndpointParams{WebhookEndpointInput: webhookEndpointInput},
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +91,12 @@ func (c *Client) CreateWebhookEndpoint(ctx context.Context, webhookEndpointInput
 
 func (c *Client) UpdateWebhookEndpoint(ctx context.Context, webhookEndpointInput *WebhookEndpointInput, webhookEndpointID string) (*WebhookEndpoint, *Error) {
 	u := c.url("webhook_endpoints/"+webhookEndpointID, nil)
-	result, err := put[webhookEndpointParams, webhookEndpointResult](ctx, c, u, &webhookEndpointParams{WebhookEndpointInput: webhookEndpointInput})
+	result, err := put[webhookEndpointParams, webhookEndpointResult](
+		ctx,
+		c,
+		u,
+		&webhookEndpointParams{WebhookEndpointInput: webhookEndpointInput},
+	)
 	if err != nil {
 		return nil, err
 	}

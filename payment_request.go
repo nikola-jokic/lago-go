@@ -71,7 +71,12 @@ func (c *Client) ListPaymentRequests(ctx context.Context, paymentRequestListInpu
 
 func (c *Client) CreatePaymentRequest(ctx context.Context, paymentRequestInput *PaymentRequestInput) (*PaymentRequest, *Error) {
 	u := c.url("payment_requests", nil)
-	result, err := post[paymentRequestParams, paymentRequestResult](ctx, c, u, &paymentRequestParams{PaymentRequest: paymentRequestInput})
+	result, err := post[paymentRequestParams, paymentRequestResult](
+		ctx,
+		c,
+		u,
+		&paymentRequestParams{PaymentRequest: paymentRequestInput},
+	)
 	if err != nil {
 		return nil, err
 	}

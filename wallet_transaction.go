@@ -109,7 +109,12 @@ type WalletTransaction struct {
 
 func (c *Client) CreateWalletTransaction(ctx context.Context, walletTransactionInput *WalletTransactionInput) (*WalletTransactionList, *Error) {
 	u := c.url("wallet_transactions", nil)
-	return post[walletTransactionParams, WalletTransactionList](ctx, c, u, &walletTransactionParams{WalletTransactionInput: walletTransactionInput})
+	return post[walletTransactionParams, WalletTransactionList](
+		ctx,
+		c,
+		u,
+		&walletTransactionParams{WalletTransactionInput: walletTransactionInput},
+	)
 }
 
 func (c *Client) ListWalletTransactions(ctx context.Context, walletTransactionListInput *WalletTransactionListInput) (*WalletTransactionList, *Error) {

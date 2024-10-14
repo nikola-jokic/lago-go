@@ -83,7 +83,12 @@ func (c *Client) ListTaxes(ctx context.Context, taxListInput *TaxListInput) (*Ta
 func (c *Client) CreateTax(ctx context.Context, taxInput *TaxInput) (*Tax, *Error) {
 	u := c.url("taxes", nil)
 
-	result, err := post[taxParams, taxResult](ctx, c, u, &taxParams{Tax: taxInput})
+	result, err := post[taxParams, taxResult](
+		ctx,
+		c,
+		u,
+		&taxParams{Tax: taxInput},
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -94,7 +99,12 @@ func (c *Client) CreateTax(ctx context.Context, taxInput *TaxInput) (*Tax, *Erro
 func (c *Client) UpdateTax(ctx context.Context, taxInput *TaxInput) (*Tax, *Error) {
 	u := c.url("taxes/"+taxInput.Code, nil)
 
-	result, err := put[taxParams, taxResult](ctx, c, u, &taxParams{Tax: taxInput})
+	result, err := put[taxParams, taxResult](
+		ctx,
+		c,
+		u,
+		&taxParams{Tax: taxInput},
+	)
 	if err != nil {
 		return nil, err
 	}

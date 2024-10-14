@@ -82,7 +82,12 @@ func (c *Client) ListAddOns(ctx context.Context, addOnListInput *AddOnListInput)
 
 func (c *Client) CreateAddOn(ctx context.Context, addOnInput *AddOnInput) (*AddOn, *Error) {
 	u := c.url("add_ons", nil)
-	result, err := post[addOnParams, addOnResult](ctx, c, u, &addOnParams{AddOn: addOnInput})
+	result, err := post[addOnParams, addOnResult](
+		ctx,
+		c,
+		u,
+		&addOnParams{AddOn: addOnInput},
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +98,12 @@ func (c *Client) CreateAddOn(ctx context.Context, addOnInput *AddOnInput) (*AddO
 func (c *Client) UpdateAddOn(ctx context.Context, addOnInput *AddOnInput) (*AddOn, *Error) {
 	u := c.url("add_ons/"+addOnInput.Code, nil)
 
-	result, err := put[addOnParams, addOnResult](ctx, c, u, &addOnParams{AddOn: addOnInput})
+	result, err := put[addOnParams, addOnResult](
+		ctx,
+		c,
+		u,
+		&addOnParams{AddOn: addOnInput},
+	)
 	if err != nil {
 		return nil, err
 	}

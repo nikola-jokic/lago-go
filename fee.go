@@ -224,7 +224,12 @@ func (c *Client) GetFee(ctx context.Context, feeID string) (*Fee, *Error) {
 
 func (c *Client) UpdateFee(ctx context.Context, feeInput *FeeUpdateInput) (*Fee, *Error) {
 	u := c.url("fees/"+feeInput.LagoID.String(), nil)
-	result, err := put[feeUpdateParams, feeResult](ctx, c, u, &feeUpdateParams{Fee: feeInput})
+	result, err := put[feeUpdateParams, feeResult](
+		ctx,
+		c,
+		u,
+		&feeUpdateParams{Fee: feeInput},
+	)
 	if err != nil {
 		return nil, err
 	}

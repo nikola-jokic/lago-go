@@ -49,7 +49,7 @@ func New(cfg Config) (*Client, error) {
 	}, nil
 }
 
-func get[R any](ctx context.Context, c *Client, path string) (*R, *Error) {
+func get[R any](ctx context.Context, client *Client, path string) (*R, *Error) {
 	req, err := http.NewRequestWithContext(
 		ctx,
 		http.MethodGet,
@@ -61,10 +61,10 @@ func get[R any](ctx context.Context, c *Client, path string) (*R, *Error) {
 	}
 
 	req.Header.Set("Accept", "application/json")
-	req.Header.Set("User-Agent", c.userAgent)
-	req.Header.Set("Authorization", c.bearerAuth)
+	req.Header.Set("User-Agent", client.userAgent)
+	req.Header.Set("Authorization", client.bearerAuth)
 
-	res, err := c.client.Do(req)
+	res, err := client.client.Do(req)
 	if err != nil {
 		return nil, &Error{Err: err}
 	}
@@ -82,7 +82,7 @@ func get[R any](ctx context.Context, c *Client, path string) (*R, *Error) {
 	return &result, nil
 }
 
-func delete[R any](ctx context.Context, c *Client, path string) (*R, *Error) {
+func delete[R any](ctx context.Context, client *Client, path string) (*R, *Error) {
 	req, err := http.NewRequestWithContext(
 		ctx,
 		http.MethodDelete,
@@ -94,10 +94,10 @@ func delete[R any](ctx context.Context, c *Client, path string) (*R, *Error) {
 	}
 
 	req.Header.Set("Accept", "application/json")
-	req.Header.Set("User-Agent", c.userAgent)
-	req.Header.Set("Authorization", c.bearerAuth)
+	req.Header.Set("User-Agent", client.userAgent)
+	req.Header.Set("Authorization", client.bearerAuth)
 
-	res, err := c.client.Do(req)
+	res, err := client.client.Do(req)
 	if err != nil {
 		return nil, &Error{Err: err}
 	}
