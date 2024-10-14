@@ -149,7 +149,7 @@ func (i *AppliedCouponListInput) query() url.Values {
 	return q
 }
 
-type ApplyCouponParams struct {
+type applyCouponParams struct {
 	AppliedCoupon *ApplyCouponInput `json:"applied_coupon"`
 }
 
@@ -254,11 +254,11 @@ func (c *Client) ListAppliedCoupons(ctx context.Context, appliedCouponListInput 
 
 func (c *Client) ApplyCouponToCustomer(ctx context.Context, applyCouponInput *ApplyCouponInput) (*AppliedCoupon, *Error) {
 	u := c.url("applied_coupons", nil)
-	result, err := post[ApplyCouponParams, appliedCouponResult](
+	result, err := post[applyCouponParams, appliedCouponResult](
 		ctx,
 		c,
 		u,
-		&ApplyCouponParams{AppliedCoupon: applyCouponInput},
+		&applyCouponParams{AppliedCoupon: applyCouponInput},
 	)
 	if err != nil {
 		return nil, err
