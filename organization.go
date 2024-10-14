@@ -89,7 +89,12 @@ type Organization struct {
 
 func (c *Client) UpdateOrganization(ctx context.Context, organizationInput *OrganizationInput) (*Organization, *Error) {
 	u := c.url("organizations", nil)
-	result, err := put[organizationParams, OrganizationResult](ctx, c, u, &organizationParams{Organization: organizationInput})
+	result, err := put[organizationParams, OrganizationResult](
+		ctx,
+		c,
+		u,
+		&organizationParams{Organization: organizationInput},
+	)
 	if err != nil {
 		return nil, err
 	}

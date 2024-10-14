@@ -162,7 +162,12 @@ type Subscription struct {
 
 func (c *Client) CreateSubscription(ctx context.Context, subscriptionInput *SubscriptionInput) (*Subscription, *Error) {
 	u := c.url("subscriptions", nil)
-	result, err := post[subscriptionParams, subscriptionResult](ctx, c, u, &subscriptionParams{Subscription: subscriptionInput})
+	result, err := post[subscriptionParams, subscriptionResult](
+		ctx,
+		c,
+		u,
+		&subscriptionParams{Subscription: subscriptionInput},
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -197,7 +202,12 @@ func (c *Client) ListSubscriptions(ctx context.Context, subscriptionListInput Su
 
 func (c *Client) UpdateSubscription(ctx context.Context, subscriptionInput *SubscriptionInput) (*Subscription, *Error) {
 	u := c.url("subscriptions/"+subscriptionInput.ExternalID, nil)
-	result, err := put[subscriptionParams, subscriptionResult](ctx, c, u, &subscriptionParams{Subscription: subscriptionInput})
+	result, err := put[subscriptionParams, subscriptionResult](
+		ctx,
+		c,
+		u,
+		&subscriptionParams{Subscription: subscriptionInput},
+	)
 	if err != nil {
 		return nil, err
 	}

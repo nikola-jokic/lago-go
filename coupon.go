@@ -207,7 +207,12 @@ func (c *Client) ListCoupons(ctx context.Context, couponListInput *CouponListInp
 func (c *Client) CreateCoupon(ctx context.Context, couponInput *CouponInput) (*Coupon, *Error) {
 	u := c.url("coupons", nil)
 
-	result, err := post[couponParams, couponResult](ctx, c, u, &couponParams{Coupon: couponInput})
+	result, err := post[couponParams, couponResult](
+		ctx,
+		c,
+		u,
+		&couponParams{Coupon: couponInput},
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -218,7 +223,12 @@ func (c *Client) CreateCoupon(ctx context.Context, couponInput *CouponInput) (*C
 func (c *Client) UpdateCoupon(ctx context.Context, couponInput *CouponInput) (*Coupon, *Error) {
 	u := c.url("coupons/"+couponInput.Code, nil)
 
-	result, err := put[couponParams, couponResult](ctx, c, u, &couponParams{Coupon: couponInput})
+	result, err := put[couponParams, couponResult](
+		ctx,
+		c,
+		u,
+		&couponParams{Coupon: couponInput},
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -244,7 +254,12 @@ func (c *Client) ListAppliedCoupons(ctx context.Context, appliedCouponListInput 
 
 func (c *Client) ApplyCouponToCustomer(ctx context.Context, applyCouponInput *ApplyCouponInput) (*AppliedCoupon, *Error) {
 	u := c.url("applied_coupons", nil)
-	result, err := post[ApplyCouponParams, appliedCouponResult](ctx, c, u, &ApplyCouponParams{AppliedCoupon: applyCouponInput})
+	result, err := post[ApplyCouponParams, appliedCouponResult](
+		ctx,
+		c,
+		u,
+		&ApplyCouponParams{AppliedCoupon: applyCouponInput},
+	)
 	if err != nil {
 		return nil, err
 	}

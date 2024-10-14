@@ -253,7 +253,12 @@ func (c *Client) ListInvoice(ctx context.Context, invoiceListInput *InvoiceListI
 
 func (c *Client) CreateInvoice(ctx context.Context, oneOffInput *InvoiceOneOffInput) (*Invoice, *Error) {
 	u := c.url("invoices", nil)
-	result, err := post[invoiceOneOffParams, invoiceResult](ctx, c, u, &invoiceOneOffParams{Invoice: oneOffInput})
+	result, err := post[invoiceOneOffParams, invoiceResult](
+		ctx,
+		c,
+		u,
+		&invoiceOneOffParams{Invoice: oneOffInput},
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -263,7 +268,12 @@ func (c *Client) CreateInvoice(ctx context.Context, oneOffInput *InvoiceOneOffIn
 
 func (c *Client) UpdateInvoice(ctx context.Context, invoiceInput *InvoiceInput) (*Invoice, *Error) {
 	u := c.url("invoices/"+invoiceInput.LagoID.String(), nil)
-	result, err := put[invoiceParams, invoiceResult](ctx, c, u, &invoiceParams{Invoice: invoiceInput})
+	result, err := put[invoiceParams, invoiceResult](
+		ctx,
+		c,
+		u,
+		&invoiceParams{Invoice: invoiceInput},
+	)
 	if err != nil {
 		return nil, err
 	}

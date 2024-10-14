@@ -53,7 +53,12 @@ func (c *Client) GetLifetimeUsage(ctx context.Context, externalSubscriptionID st
 
 func (c *Client) UpdateLifetimeUsage(ctx context.Context, lifetimeUsageInput *LifetimeUsageInput) (*LifetimeUsage, *Error) {
 	u := c.url("subscriptions/"+lifetimeUsageInput.ExternalSubscriptionID+"/lifetime_usage", nil)
-	result, err := put[lifetimeUsageParams, lifetimeUsageResult](ctx, c, u, &lifetimeUsageParams{LifetimeUsage: lifetimeUsageInput})
+	result, err := put[lifetimeUsageParams, lifetimeUsageResult](
+		ctx,
+		c,
+		u,
+		&lifetimeUsageParams{LifetimeUsage: lifetimeUsageInput},
+	)
 	if err != nil {
 		return nil, err
 	}

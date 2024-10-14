@@ -108,7 +108,12 @@ func (c *Client) ListBillableMetrics(ctx context.Context, billableMetricListInpu
 func (c *Client) CreateBillableMetric(ctx context.Context, billableMetricInput *BillableMetricInput) (*BillableMetric, *Error) {
 	u := c.url("billable_metrics", nil)
 
-	result, err := post[billableMetricParams, billableMetricResult](ctx, c, u, &billableMetricParams{BillableMetricInput: billableMetricInput})
+	result, err := post[billableMetricParams, billableMetricResult](
+		ctx,
+		c,
+		u,
+		&billableMetricParams{BillableMetricInput: billableMetricInput},
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -119,7 +124,12 @@ func (c *Client) CreateBillableMetric(ctx context.Context, billableMetricInput *
 func (c *Client) UpdateBillableMetric(ctx context.Context, billableMetricInput *BillableMetricInput) (*BillableMetric, *Error) {
 	u := c.url("billable_metrics/"+billableMetricInput.Code, nil)
 
-	result, err := put[billableMetricParams, billableMetricResult](ctx, c, u, &billableMetricParams{BillableMetricInput: billableMetricInput})
+	result, err := put[billableMetricParams, billableMetricResult](
+		ctx,
+		c,
+		u,
+		&billableMetricParams{BillableMetricInput: billableMetricInput},
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -130,7 +140,11 @@ func (c *Client) UpdateBillableMetric(ctx context.Context, billableMetricInput *
 func (c *Client) DeleteBillableMetric(ctx context.Context, billableMetricCode string) (*BillableMetric, *Error) {
 	u := c.url("billable_metrics/"+billableMetricCode, nil)
 
-	result, err := delete[billableMetricResult](ctx, c, u)
+	result, err := delete[billableMetricResult](
+		ctx,
+		c,
+		u,
+	)
 	if err != nil {
 		return nil, err
 	}

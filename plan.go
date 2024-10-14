@@ -138,7 +138,12 @@ func (c *Client) ListPlans(ctx context.Context, planListInput *PlanListInput) (*
 
 func (c *Client) CreatePlan(ctx context.Context, planInput *PlanInput) (*Plan, *Error) {
 	u := c.url("plans", nil)
-	result, err := post[planParams, planResult](ctx, c, u, &planParams{Plan: planInput})
+	result, err := post[planParams, planResult](
+		ctx,
+		c,
+		u,
+		&planParams{Plan: planInput},
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -148,7 +153,12 @@ func (c *Client) CreatePlan(ctx context.Context, planInput *PlanInput) (*Plan, *
 
 func (c *Client) UpdatePlan(ctx context.Context, planInput *PlanInput) (*Plan, *Error) {
 	u := c.url("plans/"+planInput.Code, nil)
-	result, err := put[planParams, planResult](ctx, c, u, &planParams{Plan: planInput})
+	result, err := put[planParams, planResult](
+		ctx,
+		c,
+		u,
+		&planParams{Plan: planInput},
+	)
 	if err != nil {
 		return nil, err
 	}

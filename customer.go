@@ -302,7 +302,12 @@ type Customer struct {
 
 func (c *Client) CreateCustomer(ctx context.Context, customerInput *CustomerInput) (*Customer, *Error) {
 	u := c.url("customers", nil)
-	result, err := post[customerParams, customerResult](ctx, c, u, &customerParams{Customer: customerInput})
+	result, err := post[customerParams, customerResult](
+		ctx,
+		c,
+		u,
+		&customerParams{Customer: customerInput},
+	)
 	if err != nil {
 		return nil, err
 	}

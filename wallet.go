@@ -136,7 +136,12 @@ func (c *Client) ListWallets(ctx context.Context, walletListInput *WalletListInp
 
 func (c *Client) CreateWallet(ctx context.Context, walletInput *WalletInput) (*Wallet, *Error) {
 	u := c.url("wallets", nil)
-	result, err := post[walletParams, walletResult](ctx, c, u, &walletParams{WalletInput: walletInput})
+	result, err := post[walletParams, walletResult](
+		ctx,
+		c,
+		u,
+		&walletParams{WalletInput: walletInput},
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -146,7 +151,12 @@ func (c *Client) CreateWallet(ctx context.Context, walletInput *WalletInput) (*W
 
 func (c *Client) UpdateWallet(ctx context.Context, walletInput *WalletInput, walletID string) (*Wallet, *Error) {
 	u := c.url("wallets/"+walletID, nil)
-	result, err := put[walletParams, walletResult](ctx, c, u, &walletParams{WalletInput: walletInput})
+	result, err := put[walletParams, walletResult](
+		ctx,
+		c,
+		u,
+		&walletParams{WalletInput: walletInput},
+	)
 	if err != nil {
 		return nil, err
 	}
