@@ -6,10 +6,6 @@ import (
 	"strconv"
 )
 
-type InvoicedUsageRequest struct {
-	client *Client
-}
-
 type InvoicedUsageListInput struct {
 	AmountCurrency string `json:"currency,omitempty"`
 	Months         int    `json:"months,omitempty,string"`
@@ -41,13 +37,7 @@ type InvoicedUsage struct {
 	AmountCurrency Currency `json:"currency,omitempty"`
 }
 
-func (c *Client) InvoicedUsage() *InvoicedUsageRequest {
-	return &InvoicedUsageRequest{
-		client: c,
-	}
-}
-
-func (adr *InvoicedUsageRequest) GetList(ctx context.Context, InvoicedUsageListInput *InvoicedUsageListInput) (*InvoicedUsageResult, *Error) {
-	u := adr.client.url("analytics/invoiced_usage", InvoicedUsageListInput.query())
-	return get[InvoicedUsageResult](ctx, adr.client, u)
+func (c *Client) ListInvoiceUsages(ctx context.Context, InvoicedUsageListInput *InvoicedUsageListInput) (*InvoicedUsageResult, *Error) {
+	u := c.url("analytics/invoiced_usage", InvoicedUsageListInput.query())
+	return get[InvoicedUsageResult](ctx, c, u)
 }

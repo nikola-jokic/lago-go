@@ -6,10 +6,6 @@ import (
 	"strconv"
 )
 
-type MrrRequest struct {
-	client *Client
-}
-
 type MrrListInput struct {
 	AmountCurrency string `json:"currency,omitempty"`
 	Months         int    `json:"months,omitempty,string"`
@@ -40,13 +36,7 @@ type Mrr struct {
 	AmountCurrency Currency `json:"currency,omitempty"`
 }
 
-func (c *Client) Mrr() *MrrRequest {
-	return &MrrRequest{
-		client: c,
-	}
-}
-
-func (adr *MrrRequest) GetList(ctx context.Context, MrrListInput *MrrListInput) (*MrrResult, *Error) {
-	u := adr.client.url("analytics/mrr", MrrListInput.query())
-	return get[MrrResult](ctx, adr.client, u)
+func (c *Client) ListMrrs(ctx context.Context, MrrListInput *MrrListInput) (*MrrResult, *Error) {
+	u := c.url("analytics/mrr", MrrListInput.query())
+	return get[MrrResult](ctx, c, u)
 }

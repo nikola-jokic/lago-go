@@ -7,10 +7,6 @@ import (
 	"github.com/google/uuid"
 )
 
-type EventRequest struct {
-	client *Client
-}
-
 type EventParams struct {
 	Event *EventInput `json:"event"`
 }
@@ -59,15 +55,9 @@ type Event struct {
 	CreatedAt               time.Time              `json:"created_at"`
 }
 
-func (c *Client) Event() *EventRequest {
-	return &EventRequest{
-		client: c,
-	}
-}
-
-func (er *EventRequest) Create(ctx context.Context, eventInput *EventInput) (*Event, *Error) {
-	u := er.client.url("events", nil)
-	result, err := post[EventParams, EventResult](ctx, er.client, u, &EventParams{Event: eventInput})
+func (c *Client) CreateEvent(ctx context.Context, eventInput *EventInput) (*Event, *Error) {
+	u := c.url("events", nil)
+	result, err := post[EventParams, EventResult](ctx, c, u, &EventParams{Event: eventInput})
 	if err != nil {
 		return nil, err
 	}
@@ -75,14 +65,14 @@ func (er *EventRequest) Create(ctx context.Context, eventInput *EventInput) (*Ev
 	return result.Event, nil
 }
 
-func (er *EventRequest) EstimateFees(ctx context.Context, estimateInput EventEstimateFeesInput) (*FeeResult, *Error) {
-	u := er.client.url("events/estimate_fees", nil)
-	return post[EventEstimateFeesParams, FeeResult](ctx, er.client, u, &EventEstimateFeesParams{Event: &estimateInput})
+func (c *Client) EstimateEventFees(ctx context.Context, estimateInput EventEstimateFeesInput) (*FeeResult, *Error) {
+	u := c.url("events/estimate_fees", nil)
+	return post[EventEstimateFeesParams, FeeResult](ctx, c, u, &EventEstimateFeesParams{Event: &estimateInput})
 }
 
-func (er *EventRequest) Get(ctx context.Context, eventID string) (*Event, *Error) {
-	u := er.client.url("events/"+eventID, nil)
-	result, err := get[EventResult](ctx, er.client, u)
+func (c *Client) GetEvent(ctx context.Context, eventID string) (*Event, *Error) {
+	u := c.url("events/"+eventID, nil)
+	result, err := get[EventResult](ctx, c, u)
 	if err != nil {
 		return nil, err
 	}
@@ -90,9 +80,9 @@ func (er *EventRequest) Get(ctx context.Context, eventID string) (*Event, *Error
 	return result.Event, nil
 }
 
-func (er *EventRequest) Batch(ctx context.Context, batchInput *[]*EventInput) (*[]*Event, *Error) {
-	u := er.client.url("events/batch", nil)
-	result, err := post[BatchEventParams, BatchEventResult](ctx, er.client, u, &BatchEventParams{Events: batchInput})
+func (c *Client) BatchEvents(ctx context.Context, batchInput *[]*EventInput) (*[]*Event, *Error) {
+	u := c.url("events/batch", nil)
+	result, err := post[BatchEventParams, BatchEventResult](ctx, c, u, &BatchEventParams{Events: batchInput})
 	if err != nil {
 		return nil, err
 	}

@@ -9,10 +9,6 @@ import (
 	"github.com/google/uuid"
 )
 
-type TaxRequest struct {
-	client *Client
-}
-
 type TaxParams struct {
 	Tax *TaxInput `json:"tax"`
 }
@@ -66,15 +62,9 @@ type Tax struct {
 	CreatedAt             time.Time `json:"created_at,omitempty"`
 }
 
-func (c *Client) Tax() *TaxRequest {
-	return &TaxRequest{
-		client: c,
-	}
-}
-
-func (adr *TaxRequest) Get(ctx context.Context, taxCode string) (*Tax, *Error) {
-	u := adr.client.url("taxes/"+taxCode, nil)
-	result, err := get[TaxResult](ctx, adr.client, u)
+func (c *Client) GetTax(ctx context.Context, taxCode string) (*Tax, *Error) {
+	u := c.url("taxes/"+taxCode, nil)
+	result, err := get[TaxResult](ctx, c, u)
 	if err != nil {
 		return nil, err
 	}
@@ -82,15 +72,15 @@ func (adr *TaxRequest) Get(ctx context.Context, taxCode string) (*Tax, *Error) {
 	return result.Tax, nil
 }
 
-func (adr *TaxRequest) GetList(ctx context.Context, taxListInput *TaxListInput) (*TaxResult, *Error) {
-	u := adr.client.url("taxes", taxListInput.query())
-	return get[TaxResult](ctx, adr.client, u)
+func (c *Client) ListTaxes(ctx context.Context, taxListInput *TaxListInput) (*TaxResult, *Error) {
+	u := c.url("taxes", taxListInput.query())
+	return get[TaxResult](ctx, c, u)
 }
 
-func (adr *TaxRequest) Create(ctx context.Context, taxInput *TaxInput) (*Tax, *Error) {
-	u := adr.client.url("taxes", nil)
+func (c *Client) CreateTax(ctx context.Context, taxInput *TaxInput) (*Tax, *Error) {
+	u := c.url("taxes", nil)
 
-	result, err := post[TaxParams, TaxResult](ctx, adr.client, u, &TaxParams{Tax: taxInput})
+	result, err := post[TaxParams, TaxResult](ctx, c, u, &TaxParams{Tax: taxInput})
 	if err != nil {
 		return nil, err
 	}
@@ -98,10 +88,10 @@ func (adr *TaxRequest) Create(ctx context.Context, taxInput *TaxInput) (*Tax, *E
 	return result.Tax, nil
 }
 
-func (adr *TaxRequest) Update(ctx context.Context, taxInput *TaxInput) (*Tax, *Error) {
-	u := adr.client.url("taxes/"+taxInput.Code, nil)
+func (c *Client) UpdateTax(ctx context.Context, taxInput *TaxInput) (*Tax, *Error) {
+	u := c.url("taxes/"+taxInput.Code, nil)
 
-	result, err := put[TaxParams, TaxResult](ctx, adr.client, u, &TaxParams{Tax: taxInput})
+	result, err := put[TaxParams, TaxResult](ctx, c, u, &TaxParams{Tax: taxInput})
 	if err != nil {
 		return nil, err
 	}
@@ -109,10 +99,10 @@ func (adr *TaxRequest) Update(ctx context.Context, taxInput *TaxInput) (*Tax, *E
 	return result.Tax, nil
 }
 
-func (adr *TaxRequest) Delete(ctx context.Context, taxCode string) (*Tax, *Error) {
-	u := adr.client.url("taxes/"+taxCode, nil)
+func (c *Client) DeleteTax(ctx context.Context, taxCode string) (*Tax, *Error) {
+	u := c.url("taxes/"+taxCode, nil)
 
-	result, err := delete[TaxResult](ctx, adr.client, u)
+	result, err := delete[TaxResult](ctx, c, u)
 	if err != nil {
 		return nil, err
 	}

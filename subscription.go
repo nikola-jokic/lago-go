@@ -25,10 +25,6 @@ const (
 	Calendar    BillingTime = "calendar"
 )
 
-type SubscriptionRequest struct {
-	client *Client
-}
-
 type SubscriptionResult struct {
 	Subscription  *Subscription   `json:"subscription,omitempty"`
 	Subscriptions []*Subscription `json:"subscriptions,omitempty"`
@@ -161,15 +157,9 @@ type Subscription struct {
 	TerminatedAt *time.Time `json:"terminated_at"`
 }
 
-func (c *Client) Subscription() *SubscriptionRequest {
-	return &SubscriptionRequest{
-		client: c,
-	}
-}
-
-func (sr *SubscriptionRequest) Create(ctx context.Context, subscriptionInput *SubscriptionInput) (*Subscription, *Error) {
-	u := sr.client.url("subscriptions", nil)
-	result, err := post[SubscriptionParams, SubscriptionResult](ctx, sr.client, u, &SubscriptionParams{Subscription: subscriptionInput})
+func (c *Client) CreateSubscription(ctx context.Context, subscriptionInput *SubscriptionInput) (*Subscription, *Error) {
+	u := c.url("subscriptions", nil)
+	result, err := post[SubscriptionParams, SubscriptionResult](ctx, c, u, &SubscriptionParams{Subscription: subscriptionInput})
 	if err != nil {
 		return nil, err
 	}
@@ -177,9 +167,9 @@ func (sr *SubscriptionRequest) Create(ctx context.Context, subscriptionInput *Su
 	return result.Subscription, nil
 }
 
-func (sr *SubscriptionRequest) Terminate(ctx context.Context, subscriptionTerminateInput SubscriptionTerminateInput) (*Subscription, *Error) {
-	u := sr.client.url("subscriptions/"+subscriptionTerminateInput.ExternalID, subscriptionTerminateInput.query())
-	result, err := delete[SubscriptionResult](ctx, sr.client, u)
+func (c *Client) TerminateSubscription(ctx context.Context, subscriptionTerminateInput SubscriptionTerminateInput) (*Subscription, *Error) {
+	u := c.url("subscriptions/"+subscriptionTerminateInput.ExternalID, subscriptionTerminateInput.query())
+	result, err := delete[SubscriptionResult](ctx, c, u)
 	if err != nil {
 		return nil, err
 	}
@@ -187,9 +177,9 @@ func (sr *SubscriptionRequest) Terminate(ctx context.Context, subscriptionTermin
 	return result.Subscription, nil
 }
 
-func (sr *SubscriptionRequest) Get(ctx context.Context, subscriptionExternalId string) (*Subscription, *Error) {
-	u := sr.client.url("subscriptions/"+subscriptionExternalId, nil)
-	result, err := get[SubscriptionResult](ctx, sr.client, u)
+func (c *Client) GetSubscription(ctx context.Context, subscriptionExternalId string) (*Subscription, *Error) {
+	u := c.url("subscriptions/"+subscriptionExternalId, nil)
+	result, err := get[SubscriptionResult](ctx, c, u)
 	if err != nil {
 		return nil, err
 	}
@@ -197,14 +187,14 @@ func (sr *SubscriptionRequest) Get(ctx context.Context, subscriptionExternalId s
 	return result.Subscription, nil
 }
 
-func (sr *SubscriptionRequest) GetList(ctx context.Context, subscriptionListInput SubscriptionListInput) (*SubscriptionResult, *Error) {
-	u := sr.client.url("subscriptions", subscriptionListInput.query())
-	return get[SubscriptionResult](ctx, sr.client, u)
+func (c *Client) ListSubscriptions(ctx context.Context, subscriptionListInput SubscriptionListInput) (*SubscriptionResult, *Error) {
+	u := c.url("subscriptions", subscriptionListInput.query())
+	return get[SubscriptionResult](ctx, c, u)
 }
 
-func (sr *SubscriptionRequest) Update(ctx context.Context, subscriptionInput *SubscriptionInput) (*Subscription, *Error) {
-	u := sr.client.url("subscriptions/"+subscriptionInput.ExternalID, nil)
-	result, err := put[SubscriptionParams, SubscriptionResult](ctx, sr.client, u, &SubscriptionParams{Subscription: subscriptionInput})
+func (c *Client) UpdateSubscription(ctx context.Context, subscriptionInput *SubscriptionInput) (*Subscription, *Error) {
+	u := c.url("subscriptions/"+subscriptionInput.ExternalID, nil)
+	result, err := put[SubscriptionParams, SubscriptionResult](ctx, c, u, &SubscriptionParams{Subscription: subscriptionInput})
 	if err != nil {
 		return nil, err
 	}

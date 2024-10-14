@@ -59,12 +59,12 @@ type CustomerPastUsageResult struct {
 	Meta         Metadata         `json:"metadata"`
 }
 
-type CustomerPortalUrlResult struct {
-	CustomerPortalUrl *CustomerPortalUrl `json:"customer"`
+type CustomerPortalURLResult struct {
+	CustomerPortalURL *CustomerPortalURL `json:"customer"`
 }
 
-type CustomerCheckoutUrlResult struct {
-	CustomerCheckoutUrl *CustomerCheckoutUrl `json:"customer"`
+type CustomerCheckoutURLResult struct {
+	CustomerCheckoutURL *CustomerCheckoutURL `json:"customer"`
 }
 
 type CustomerMetadataInput struct {
@@ -216,12 +216,12 @@ type CustomerUsage struct {
 	ChargesUsage []*CustomerChargeUsage `json:"charges_usage,omitempty"`
 }
 
-type CustomerPortalUrl struct {
-	PortalUrl string `json:"portal_url,omitempty"`
+type CustomerPortalURL struct {
+	PortalURL string `json:"portal_url,omitempty"`
 }
 
-type CustomerCheckoutUrl struct {
-	CheckoutUrl string `json:"checkout_url,omitempty"`
+type CustomerCheckoutURL struct {
+	CheckoutURL string `json:"checkout_url,omitempty"`
 }
 
 type CustomerUsageInput struct {
@@ -297,19 +297,9 @@ type Customer struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 }
 
-type CustomerRequest struct {
-	client *Client
-}
-
-func (c *Client) Customer() *CustomerRequest {
-	return &CustomerRequest{
-		client: c,
-	}
-}
-
-func (cr *CustomerRequest) Create(ctx context.Context, customerInput *CustomerInput) (*Customer, *Error) {
-	u := cr.client.url("customers", nil)
-	result, err := post[CustomerParams, CustomerResult](ctx, cr.client, u, &CustomerParams{Customer: customerInput})
+func (c *Client) CreateCustomer(ctx context.Context, customerInput *CustomerInput) (*Customer, *Error) {
+	u := c.url("customers", nil)
+	result, err := post[CustomerParams, CustomerResult](ctx, c, u, &CustomerParams{Customer: customerInput})
 	if err != nil {
 		return nil, err
 	}
@@ -317,16 +307,17 @@ func (cr *CustomerRequest) Create(ctx context.Context, customerInput *CustomerIn
 	return result.Customer, nil
 }
 
-// NOTE: Update endpoint does not exists, actually we use the create endpoint with the
-// same externalID to update a customer
-func (cr *CustomerRequest) Update(ctx context.Context, customerInput *CustomerInput) (*Customer, *Error) {
-	return cr.Create(ctx, customerInput)
+// UpdateCustomer is an alias for CreateCustomer
+// If customer does not exist, it will be created
+// If customer exists, it will be updated
+func (c *Client) UpdateCustomer(ctx context.Context, customerInput *CustomerInput) (*Customer, *Error) {
+	return c.CreateCustomer(ctx, customerInput)
 }
 
-func (cr *CustomerRequest) CurrentUsage(ctx context.Context, externalCustomerID string, customerUsageInput *CustomerUsageInput) (*CustomerUsage, *Error) {
-	u := cr.client.url("customers/"+externalCustomerID+"/current_usage", customerUsageInput.query())
+func (c *Client) CustomersCurrentUsage(ctx context.Context, externalCustomerID string, customerUsageInput *CustomerUsageInput) (*CustomerUsage, *Error) {
+	u := c.url("customers/"+externalCustomerID+"/current_usage", customerUsageInput.query())
 
-	result, err := get[CustomerUsageResult](ctx, cr.client, u)
+	result, err := get[CustomerUsageResult](ctx, c, u)
 	if err != nil {
 		return nil, err
 	}
@@ -334,45 +325,35 @@ func (cr *CustomerRequest) CurrentUsage(ctx context.Context, externalCustomerID 
 	return result.CustomerUsage, nil
 }
 
-func (cr *CustomerRequest) PastUsage(ctx context.Context, externalCustomerID string, customerPastUsageInput *CustomerPastUsageInput) (*CustomerPastUsageResult, *Error) {
-	u := cr.client.url("customers/"+externalCustomerID+"/past_usage", customerPastUsageInput.query())
+func (c *Client) CustomersPastUsage(ctx context.Context, externalCustomerID string, customerPastUsageInput *CustomerPastUsageInput) (*CustomerPastUsageResult, *Error) {
+	u := c.url("customers/"+externalCustomerID+"/past_usage", customerPastUsageInput.query())
 
-	return get[CustomerPastUsageResult](ctx, cr.client, u)
+	return get[CustomerPastUsageResult](ctx, c, u)
 }
 
-func (cr *CustomerRequest) PortalUrl(ctx context.Context, externalCustomerID string) (*CustomerPortalUrl, *Error) {
-	u := cr.client.url("customers/"+externalCustomerID+"/portal_url", nil)
-	result, err := get[CustomerPortalUrlResult](ctx, cr.client, u)
+func (c *Client) CustomersPortalURL(ctx context.Context, externalCustomerID string) (*CustomerPortalURL, *Error) {
+	u := c.url("customers/"+externalCustomerID+"/portal_url", nil)
+	result, err := get[CustomerPortalURLResult](ctx, c, u)
 	if err != nil {
 		return nil, err
 	}
 
-	return result.CustomerPortalUrl, nil
+	return result.CustomerPortalURL, nil
 }
 
-func (cr *CustomerRequest) CheckoutUrl(ctx context.Context, externalCustomerID string) (*CustomerCheckoutUrl, *Error) {
-	u := cr.client.url("customers/"+externalCustomerID+"/checkout_url", nil)
-	result, err := get[CustomerCheckoutUrlResult](ctx, cr.client, u)
+func (c *Client) CustomersCheckoutURL(ctx context.Context, externalCustomerID string) (*CustomerCheckoutURL, *Error) {
+	u := c.url("customers/"+externalCustomerID+"/checkout_url", nil)
+	result, err := get[CustomerCheckoutURLResult](ctx, c, u)
 	if err != nil {
 		return nil, err
 	}
 
-	return result.CustomerCheckoutUrl, nil
+	return result.CustomerCheckoutURL, nil
 }
 
-func (cr *CustomerRequest) Delete(ctx context.Context, externalCustomerID string) (*Customer, *Error) {
-	u := cr.client.url("customers/"+externalCustomerID, nil)
-	result, err := delete[CustomerResult](ctx, cr.client, u)
-	if err != nil {
-		return nil, err
-	}
-
-	return result.Customer, nil
-}
-
-func (cr *CustomerRequest) Get(ctx context.Context, externalCustomerID string) (*Customer, *Error) {
-	u := cr.client.url("customers/"+externalCustomerID, nil)
-	result, err := get[CustomerResult](ctx, cr.client, u)
+func (c *Client) DeleteCustomer(ctx context.Context, externalCustomerID string) (*Customer, *Error) {
+	u := c.url("customers/"+externalCustomerID, nil)
+	result, err := delete[CustomerResult](ctx, c, u)
 	if err != nil {
 		return nil, err
 	}
@@ -380,7 +361,17 @@ func (cr *CustomerRequest) Get(ctx context.Context, externalCustomerID string) (
 	return result.Customer, nil
 }
 
-func (cr *CustomerRequest) GetList(ctx context.Context, customerListInput *CustomerListInput) (*CustomerResult, *Error) {
-	u := cr.client.url("customers", customerListInput.query())
-	return get[CustomerResult](ctx, cr.client, u)
+func (c *Client) GetCustomer(ctx context.Context, externalCustomerID string) (*Customer, *Error) {
+	u := c.url("customers/"+externalCustomerID, nil)
+	result, err := get[CustomerResult](ctx, c, u)
+	if err != nil {
+		return nil, err
+	}
+
+	return result.Customer, nil
+}
+
+func (c *Client) ListCustomers(ctx context.Context, customerListInput *CustomerListInput) (*CustomerResult, *Error) {
+	u := c.url("customers", customerListInput.query())
+	return get[CustomerResult](ctx, c, u)
 }

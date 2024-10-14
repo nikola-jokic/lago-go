@@ -39,18 +39,14 @@ const (
 	InvoiceCreditItemInvoice    InvoiceCreditItemType = "invoice"
 )
 
-type InvoiceRequest struct {
-	client *Client
-}
-
 type InvoiceResult struct {
 	Invoice  *Invoice   `json:"invoice,omitempty"`
 	Invoices []*Invoice `json:"invoices,omitempty"`
 	Meta     Metadata   `json:"meta,omitempty"`
 }
 
-type InvoicePaymentUrlResult struct {
-	InvoicePaymentUrl *InvoicePaymentUrl `json:"invoice_payment_url"`
+type InvoicePaymentURLResult struct {
+	InvoicePaymentURL *InvoicePaymentURL `json:"invoice_payment_url"`
 }
 
 type InvoiceParams struct {
@@ -230,19 +226,13 @@ type Invoice struct {
 	AppliedUsageThreshold []*AppliedUsageThreshold `json:"applied_usage_threshold,omitempty"`
 }
 
-type InvoicePaymentUrl struct {
-	PaymentUrl string `json:"payment_url,omitempty"`
+type InvoicePaymentURL struct {
+	PaymentURL string `json:"payment_url,omitempty"`
 }
 
-func (c *Client) Invoice() *InvoiceRequest {
-	return &InvoiceRequest{
-		client: c,
-	}
-}
-
-func (ir *InvoiceRequest) Get(ctx context.Context, invoiceID string) (*Invoice, *Error) {
-	u := ir.client.url("invoices/"+invoiceID, nil)
-	result, err := get[InvoiceResult](ctx, ir.client, u)
+func (c *Client) GetInvoice(ctx context.Context, invoiceID string) (*Invoice, *Error) {
+	u := c.url("invoices/"+invoiceID, nil)
+	result, err := get[InvoiceResult](ctx, c, u)
 	if err != nil {
 		return nil, err
 	}
@@ -250,14 +240,14 @@ func (ir *InvoiceRequest) Get(ctx context.Context, invoiceID string) (*Invoice, 
 	return result.Invoice, nil
 }
 
-func (ir *InvoiceRequest) GetList(ctx context.Context, invoiceListInput *InvoiceListInput) (*InvoiceResult, *Error) {
-	u := ir.client.url("invoices", invoiceListInput.query())
-	return get[InvoiceResult](ctx, ir.client, u)
+func (c *Client) ListInvoice(ctx context.Context, invoiceListInput *InvoiceListInput) (*InvoiceResult, *Error) {
+	u := c.url("invoices", invoiceListInput.query())
+	return get[InvoiceResult](ctx, c, u)
 }
 
-func (ir *InvoiceRequest) Create(ctx context.Context, oneOffInput *InvoiceOneOffInput) (*Invoice, *Error) {
-	u := ir.client.url("invoices", nil)
-	result, err := post[InvoiceOneOffParams, InvoiceResult](ctx, ir.client, u, &InvoiceOneOffParams{Invoice: oneOffInput})
+func (c *Client) CreateInvoice(ctx context.Context, oneOffInput *InvoiceOneOffInput) (*Invoice, *Error) {
+	u := c.url("invoices", nil)
+	result, err := post[InvoiceOneOffParams, InvoiceResult](ctx, c, u, &InvoiceOneOffParams{Invoice: oneOffInput})
 	if err != nil {
 		return nil, err
 	}
@@ -265,9 +255,9 @@ func (ir *InvoiceRequest) Create(ctx context.Context, oneOffInput *InvoiceOneOff
 	return result.Invoice, nil
 }
 
-func (ir *InvoiceRequest) Update(ctx context.Context, invoiceInput *InvoiceInput) (*Invoice, *Error) {
-	u := ir.client.url("invoices/"+invoiceInput.LagoID.String(), nil)
-	result, err := put[InvoiceParams, InvoiceResult](ctx, ir.client, u, &InvoiceParams{Invoice: invoiceInput})
+func (c *Client) UpdateInvoice(ctx context.Context, invoiceInput *InvoiceInput) (*Invoice, *Error) {
+	u := c.url("invoices/"+invoiceInput.LagoID.String(), nil)
+	result, err := put[InvoiceParams, InvoiceResult](ctx, c, u, &InvoiceParams{Invoice: invoiceInput})
 	if err != nil {
 		return nil, err
 	}
@@ -275,9 +265,9 @@ func (ir *InvoiceRequest) Update(ctx context.Context, invoiceInput *InvoiceInput
 	return result.Invoice, nil
 }
 
-func (ir *InvoiceRequest) Download(ctx context.Context, invoiceID string) (*Invoice, *Error) {
-	u := ir.client.url("invoices/"+invoiceID+"/download", nil)
-	result, err := postWithoutBody[InvoiceResult](ctx, ir.client, u)
+func (c *Client) DownloadInvoice(ctx context.Context, invoiceID string) (*Invoice, *Error) {
+	u := c.url("invoices/"+invoiceID+"/download", nil)
+	result, err := postWithoutBody[InvoiceResult](ctx, c, u)
 	if err != nil {
 		return nil, err
 	}
@@ -285,9 +275,9 @@ func (ir *InvoiceRequest) Download(ctx context.Context, invoiceID string) (*Invo
 	return result.Invoice, nil
 }
 
-func (ir *InvoiceRequest) Refresh(ctx context.Context, invoiceID string) (*Invoice, *Error) {
-	u := ir.client.url("invoices/"+invoiceID+"/refresh", nil)
-	result, err := putWithoutBody[InvoiceResult](ctx, ir.client, u)
+func (c *Client) RefreshInvoice(ctx context.Context, invoiceID string) (*Invoice, *Error) {
+	u := c.url("invoices/"+invoiceID+"/refresh", nil)
+	result, err := putWithoutBody[InvoiceResult](ctx, c, u)
 	if err != nil {
 		return nil, err
 	}
@@ -295,9 +285,9 @@ func (ir *InvoiceRequest) Refresh(ctx context.Context, invoiceID string) (*Invoi
 	return result.Invoice, nil
 }
 
-func (ir *InvoiceRequest) Retry(ctx context.Context, invoiceID string) (*Invoice, *Error) {
-	u := ir.client.url("invoices/"+invoiceID+"/retry", nil)
-	result, err := postWithoutBody[InvoiceResult](ctx, ir.client, u)
+func (c *Client) RetryInvoice(ctx context.Context, invoiceID string) (*Invoice, *Error) {
+	u := c.url("invoices/"+invoiceID+"/retry", nil)
+	result, err := postWithoutBody[InvoiceResult](ctx, c, u)
 	if err != nil {
 		return nil, err
 	}
@@ -305,9 +295,9 @@ func (ir *InvoiceRequest) Retry(ctx context.Context, invoiceID string) (*Invoice
 	return result.Invoice, nil
 }
 
-func (ir *InvoiceRequest) Finalize(ctx context.Context, invoiceID string) (*Invoice, *Error) {
-	u := ir.client.url("invoices/"+invoiceID+"/finalize", nil)
-	result, err := putWithoutBody[InvoiceResult](ctx, ir.client, u)
+func (c *Client) FinalizeInvoice(ctx context.Context, invoiceID string) (*Invoice, *Error) {
+	u := c.url("invoices/"+invoiceID+"/finalize", nil)
+	result, err := putWithoutBody[InvoiceResult](ctx, c, u)
 	if err != nil {
 		return nil, err
 	}
@@ -315,9 +305,9 @@ func (ir *InvoiceRequest) Finalize(ctx context.Context, invoiceID string) (*Invo
 	return result.Invoice, nil
 }
 
-func (ir *InvoiceRequest) LoseDispute(ctx context.Context, invoiceID string) (*Invoice, *Error) {
-	u := ir.client.url("invoices/"+invoiceID+"/lose_dispute", nil)
-	result, err := putWithoutBody[InvoiceResult](ctx, ir.client, u)
+func (c *Client) LoseInvoiceDispute(ctx context.Context, invoiceID string) (*Invoice, *Error) {
+	u := c.url("invoices/"+invoiceID+"/lose_dispute", nil)
+	result, err := putWithoutBody[InvoiceResult](ctx, c, u)
 	if err != nil {
 		return nil, err
 	}
@@ -325,9 +315,9 @@ func (ir *InvoiceRequest) LoseDispute(ctx context.Context, invoiceID string) (*I
 	return result.Invoice, nil
 }
 
-func (ir *InvoiceRequest) RetryPayment(ctx context.Context, invoiceID string) (*Invoice, *Error) {
-	u := ir.client.url("invoices/"+invoiceID+"/retry_payment", nil)
-	result, err := postWithoutBody[InvoiceResult](ctx, ir.client, u)
+func (c *Client) RetryInvoicePayment(ctx context.Context, invoiceID string) (*Invoice, *Error) {
+	u := c.url("invoices/"+invoiceID+"/retry_payment", nil)
+	result, err := postWithoutBody[InvoiceResult](ctx, c, u)
 	if err != nil {
 		return nil, err
 	}
@@ -335,12 +325,12 @@ func (ir *InvoiceRequest) RetryPayment(ctx context.Context, invoiceID string) (*
 	return result.Invoice, nil
 }
 
-func (ir *InvoiceRequest) PaymentUrl(ctx context.Context, invoiceID string) (*InvoicePaymentUrl, *Error) {
-	u := ir.client.url("invoices/"+invoiceID+"/payment_url", nil)
-	result, err := postWithoutBody[InvoicePaymentUrlResult](ctx, ir.client, u)
+func (c *Client) GetInvoicePaymentURL(ctx context.Context, invoiceID string) (*InvoicePaymentURL, *Error) {
+	u := c.url("invoices/"+invoiceID+"/payment_url", nil)
+	result, err := postWithoutBody[InvoicePaymentURLResult](ctx, c, u)
 	if err != nil {
 		return nil, err
 	}
 
-	return result.InvoicePaymentUrl, nil
+	return result.InvoicePaymentURL, nil
 }

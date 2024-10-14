@@ -6,10 +6,6 @@ import (
 	"strconv"
 )
 
-type OverdueBalanceRequest struct {
-	client *Client
-}
-
 type OverdueBalanceListInput struct {
 	AmountCurrency     string `json:"currency,omitempty"`
 	ExternalCustomerId string `json:"external_customer_id,omitempty"`
@@ -45,13 +41,7 @@ type OverdueBalance struct {
 	AmountCurrency Currency `json:"currency,omitempty"`
 }
 
-func (c *Client) OverdueBalance() *OverdueBalanceRequest {
-	return &OverdueBalanceRequest{
-		client: c,
-	}
-}
-
-func (adr *OverdueBalanceRequest) GetList(ctx context.Context, OverdueBalanceListInput *OverdueBalanceListInput) (*OverdueBalanceResult, *Error) {
-	u := adr.client.url("analytics/overdue_balance", OverdueBalanceListInput.query())
-	return get[OverdueBalanceResult](ctx, adr.client, u)
+func (c *Client) ListOverdueBalances(ctx context.Context, OverdueBalanceListInput *OverdueBalanceListInput) (*OverdueBalanceResult, *Error) {
+	u := c.url("analytics/overdue_balance", OverdueBalanceListInput.query())
+	return get[OverdueBalanceResult](ctx, c, u)
 }

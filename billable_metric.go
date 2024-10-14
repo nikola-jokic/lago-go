@@ -9,10 +9,6 @@ import (
 	"github.com/google/uuid"
 )
 
-type BillableMetricRequest struct {
-	client *Client
-}
-
 type AggregationType string
 
 const (
@@ -89,16 +85,10 @@ type BillableMetric struct {
 	PlansCount               int                     `json:"plans_count,omitempty"`
 }
 
-func (c *Client) BillableMetric() *BillableMetricRequest {
-	return &BillableMetricRequest{
-		client: c,
-	}
-}
+func (c *Client) GetBillableMetric(ctx context.Context, billableMetricCode string) (*BillableMetric, *Error) {
+	u := c.url("billable_metrics/"+billableMetricCode, nil)
 
-func (bmr *BillableMetricRequest) Get(ctx context.Context, billableMetricCode string) (*BillableMetric, *Error) {
-	u := bmr.client.url("billable_metrics/"+billableMetricCode, nil)
-
-	result, err := get[BillableMetricResult](ctx, bmr.client, u)
+	result, err := get[BillableMetricResult](ctx, c, u)
 	if err != nil {
 		return nil, err
 	}
@@ -106,16 +96,16 @@ func (bmr *BillableMetricRequest) Get(ctx context.Context, billableMetricCode st
 	return result.BillableMetric, nil
 }
 
-func (bmr *BillableMetricRequest) GetList(ctx context.Context, billableMetricListInput *BillableMetricListInput) (*BillableMetricResult, *Error) {
+func (c *Client) ListBillableMetrics(ctx context.Context, billableMetricListInput *BillableMetricListInput) (*BillableMetricResult, *Error) {
 
-	u := bmr.client.url("billable_metrics", billableMetricListInput.query())
-	return get[BillableMetricResult](ctx, bmr.client, u)
+	u := c.url("billable_metrics", billableMetricListInput.query())
+	return get[BillableMetricResult](ctx, c, u)
 }
 
-func (bmr *BillableMetricRequest) Create(ctx context.Context, billableMetricInput *BillableMetricInput) (*BillableMetric, *Error) {
-	u := bmr.client.url("billable_metrics", nil)
+func (c *Client) CreateBillableMetric(ctx context.Context, billableMetricInput *BillableMetricInput) (*BillableMetric, *Error) {
+	u := c.url("billable_metrics", nil)
 
-	result, err := post[BillableMetricParams, BillableMetricResult](ctx, bmr.client, u, &BillableMetricParams{BillableMetricInput: billableMetricInput})
+	result, err := post[BillableMetricParams, BillableMetricResult](ctx, c, u, &BillableMetricParams{BillableMetricInput: billableMetricInput})
 	if err != nil {
 		return nil, err
 	}
@@ -123,10 +113,10 @@ func (bmr *BillableMetricRequest) Create(ctx context.Context, billableMetricInpu
 	return result.BillableMetric, nil
 }
 
-func (bmr *BillableMetricRequest) Update(ctx context.Context, billableMetricInput *BillableMetricInput) (*BillableMetric, *Error) {
-	u := bmr.client.url("billable_metrics/"+billableMetricInput.Code, nil)
+func (c *Client) UpdateBillableMetric(ctx context.Context, billableMetricInput *BillableMetricInput) (*BillableMetric, *Error) {
+	u := c.url("billable_metrics/"+billableMetricInput.Code, nil)
 
-	result, err := put[BillableMetricParams, BillableMetricResult](ctx, bmr.client, u, &BillableMetricParams{BillableMetricInput: billableMetricInput})
+	result, err := put[BillableMetricParams, BillableMetricResult](ctx, c, u, &BillableMetricParams{BillableMetricInput: billableMetricInput})
 	if err != nil {
 		return nil, err
 	}
@@ -134,10 +124,10 @@ func (bmr *BillableMetricRequest) Update(ctx context.Context, billableMetricInpu
 	return result.BillableMetric, nil
 }
 
-func (bmr *BillableMetricRequest) Delete(ctx context.Context, billableMetricCode string) (*BillableMetric, *Error) {
-	u := bmr.client.url("billable_metrics/"+billableMetricCode, nil)
+func (c *Client) DeleteBillableMetric(ctx context.Context, billableMetricCode string) (*BillableMetric, *Error) {
+	u := c.url("billable_metrics/"+billableMetricCode, nil)
 
-	result, err := delete[BillableMetricResult](ctx, bmr.client, u)
+	result, err := delete[BillableMetricResult](ctx, c, u)
 	if err != nil {
 		return nil, err
 	}

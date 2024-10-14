@@ -41,9 +41,9 @@ type LifetimeUsageInput struct {
 	ExternalHistoricalUsageAmountCents int    `json:"external_historical_usage_amount_cents"`
 }
 
-func (sr *SubscriptionRequest) GetLifetimeUsage(ctx context.Context, externalSubscriptionID string) (*LifetimeUsage, *Error) {
-	u := sr.client.url("subscriptions/"+externalSubscriptionID+"/lifetime_usage", nil)
-	result, err := get[LifetimeUsageResult](ctx, sr.client, u)
+func (c *Client) GetLifetimeUsage(ctx context.Context, externalSubscriptionID string) (*LifetimeUsage, *Error) {
+	u := c.url("subscriptions/"+externalSubscriptionID+"/lifetime_usage", nil)
+	result, err := get[LifetimeUsageResult](ctx, c, u)
 	if err != nil {
 		return nil, err
 	}
@@ -51,9 +51,9 @@ func (sr *SubscriptionRequest) GetLifetimeUsage(ctx context.Context, externalSub
 	return result.LifetimeUsage, nil
 }
 
-func (sr *SubscriptionRequest) UpdateLifetimeUsage(ctx context.Context, lifetimeUsageInput *LifetimeUsageInput) (*LifetimeUsage, *Error) {
-	u := sr.client.url("subscriptions/"+lifetimeUsageInput.ExternalSubscriptionID+"/lifetime_usage", nil)
-	result, err := put[LifetimeUsageInput, LifetimeUsageResult](ctx, sr.client, u, lifetimeUsageInput)
+func (c *Client) UpdateLifetimeUsage(ctx context.Context, lifetimeUsageInput *LifetimeUsageInput) (*LifetimeUsage, *Error) {
+	u := c.url("subscriptions/"+lifetimeUsageInput.ExternalSubscriptionID+"/lifetime_usage", nil)
+	result, err := put[LifetimeUsageInput, LifetimeUsageResult](ctx, c, u, lifetimeUsageInput)
 	if err != nil {
 		return nil, err
 	}

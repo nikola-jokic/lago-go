@@ -38,14 +38,6 @@ const (
 	AppliedCouponStatusTerminated AppliedCouponStatus = "terminated"
 )
 
-type CouponRequest struct {
-	client *Client
-}
-
-type AppliedCouponRequest struct {
-	client *Client
-}
-
 type CouponResult struct {
 	Coupon  *Coupon   `json:"coupon,omitempty"`
 	Coupons []*Coupon `json:"coupons,omitempty"`
@@ -190,22 +182,10 @@ type AppliedCoupon struct {
 	Credits []*InvoiceCredit `json:"credits,omitempty"`
 }
 
-func (c *Client) Coupon() *CouponRequest {
-	return &CouponRequest{
-		client: c,
-	}
-}
+func (c *Client) GetCoupon(ctx context.Context, couponCode string) (*Coupon, *Error) {
+	u := c.url("coupons/"+couponCode, nil)
 
-func (c *Client) AppliedCoupon() *AppliedCouponRequest {
-	return &AppliedCouponRequest{
-		client: c,
-	}
-}
-
-func (cr *CouponRequest) Get(ctx context.Context, couponCode string) (*Coupon, *Error) {
-	u := cr.client.url("coupons/"+couponCode, nil)
-
-	result, err := get[CouponResult](ctx, cr.client, u)
+	result, err := get[CouponResult](ctx, c, u)
 	if err != nil {
 		return nil, err
 	}
@@ -213,15 +193,15 @@ func (cr *CouponRequest) Get(ctx context.Context, couponCode string) (*Coupon, *
 	return result.Coupon, nil
 }
 
-func (cr *CouponRequest) GetList(ctx context.Context, couponListInput *CouponListInput) (*CouponResult, *Error) {
-	u := cr.client.url("coupons", couponListInput.query())
-	return get[CouponResult](ctx, cr.client, u)
+func (c *Client) ListCoupons(ctx context.Context, couponListInput *CouponListInput) (*CouponResult, *Error) {
+	u := c.url("coupons", couponListInput.query())
+	return get[CouponResult](ctx, c, u)
 }
 
-func (cr *CouponRequest) Create(ctx context.Context, couponInput *CouponInput) (*Coupon, *Error) {
-	u := cr.client.url("coupons", nil)
+func (c *Client) CreateCoupon(ctx context.Context, couponInput *CouponInput) (*Coupon, *Error) {
+	u := c.url("coupons", nil)
 
-	result, err := post[CouponParams, CouponResult](ctx, cr.client, u, &CouponParams{Coupon: couponInput})
+	result, err := post[CouponParams, CouponResult](ctx, c, u, &CouponParams{Coupon: couponInput})
 	if err != nil {
 		return nil, err
 	}
@@ -229,10 +209,10 @@ func (cr *CouponRequest) Create(ctx context.Context, couponInput *CouponInput) (
 	return result.Coupon, nil
 }
 
-func (cr *CouponRequest) Update(ctx context.Context, couponInput *CouponInput) (*Coupon, *Error) {
-	u := cr.client.url("coupons/"+couponInput.Code, nil)
+func (c *Client) UpdateCoupon(ctx context.Context, couponInput *CouponInput) (*Coupon, *Error) {
+	u := c.url("coupons/"+couponInput.Code, nil)
 
-	result, err := put[CouponParams, CouponResult](ctx, cr.client, u, &CouponParams{Coupon: couponInput})
+	result, err := put[CouponParams, CouponResult](ctx, c, u, &CouponParams{Coupon: couponInput})
 	if err != nil {
 		return nil, err
 	}
@@ -240,10 +220,10 @@ func (cr *CouponRequest) Update(ctx context.Context, couponInput *CouponInput) (
 	return result.Coupon, nil
 }
 
-func (cr *CouponRequest) Delete(ctx context.Context, couponCode string) (*Coupon, *Error) {
-	u := cr.client.url("coupons/"+couponCode, nil)
+func (c *Client) DeleteCoupon(ctx context.Context, couponCode string) (*Coupon, *Error) {
+	u := c.url("coupons/"+couponCode, nil)
 
-	result, err := delete[CouponResult](ctx, cr.client, u)
+	result, err := delete[CouponResult](ctx, c, u)
 	if err != nil {
 		return nil, err
 	}
@@ -251,14 +231,14 @@ func (cr *CouponRequest) Delete(ctx context.Context, couponCode string) (*Coupon
 	return result.Coupon, nil
 }
 
-func (cr *AppliedCouponRequest) GetList(ctx context.Context, appliedCouponListInput *AppliedCouponListInput) (*AppliedCouponResult, *Error) {
-	u := cr.client.url("applied_coupons", appliedCouponListInput.query())
-	return get[AppliedCouponResult](ctx, cr.client, u)
+func (c *Client) ListAppliedCoupons(ctx context.Context, appliedCouponListInput *AppliedCouponListInput) (*AppliedCouponResult, *Error) {
+	u := c.url("applied_coupons", appliedCouponListInput.query())
+	return get[AppliedCouponResult](ctx, c, u)
 }
 
-func (cr *CouponRequest) ApplyToCustomer(ctx context.Context, applyCouponInput *ApplyCouponInput) (*AppliedCoupon, *Error) {
-	u := cr.client.url("applied_coupons", nil)
-	result, err := post[ApplyCouponParams, AppliedCouponResult](ctx, cr.client, u, &ApplyCouponParams{AppliedCoupon: applyCouponInput})
+func (c *Client) ApplyCouponToCustomer(ctx context.Context, applyCouponInput *ApplyCouponInput) (*AppliedCoupon, *Error) {
+	u := c.url("applied_coupons", nil)
+	result, err := post[ApplyCouponParams, AppliedCouponResult](ctx, c, u, &ApplyCouponParams{AppliedCoupon: applyCouponInput})
 	if err != nil {
 		return nil, err
 	}
@@ -266,11 +246,11 @@ func (cr *CouponRequest) ApplyToCustomer(ctx context.Context, applyCouponInput *
 	return result.AppliedCoupon, nil
 }
 
-func (acr *AppliedCouponRequest) AppliedCouponDelete(ctx context.Context, externalCustomerID string, appliedCouponID string) (*AppliedCoupon, *Error) {
+func (ac *Client) DeleteAppliedCoupon(ctx context.Context, externalCustomerID string, appliedCouponID string) (*AppliedCoupon, *Error) {
 	subPath := fmt.Sprintf("customers/%s/applied_coupons/%s", externalCustomerID, appliedCouponID)
-	u := acr.client.url(subPath, nil)
+	u := ac.url(subPath, nil)
 
-	result, err := delete[AppliedCouponResult](ctx, acr.client, u)
+	result, err := delete[AppliedCouponResult](ctx, ac, u)
 	if err != nil {
 		return nil, err
 	}

@@ -45,10 +45,6 @@ type RecurringTransactionRuleResponse struct {
 	TransactionMetadata              []*WalletTransactionMetadata `json:"transaction_metadata,omitempty"`
 }
 
-type WalletRequest struct {
-	client *Client
-}
-
 type WalletParams struct {
 	WalletInput *WalletInput `json:"wallet"`
 }
@@ -120,15 +116,9 @@ type Wallet struct {
 	CreditsOngoingUsageBalance       string                              `json:"credits_ongoing_usage_balance,omitempty"`
 }
 
-func (c *Client) Wallet() *WalletRequest {
-	return &WalletRequest{
-		client: c,
-	}
-}
-
-func (bmr *WalletRequest) Get(ctx context.Context, walletID string) (*Wallet, *Error) {
-	u := bmr.client.url("wallets/"+walletID, nil)
-	result, err := get[WalletResult](ctx, bmr.client, u)
+func (c *Client) GetWallet(ctx context.Context, walletID string) (*Wallet, *Error) {
+	u := c.url("wallets/"+walletID, nil)
+	result, err := get[WalletResult](ctx, c, u)
 	if err != nil {
 		return nil, err
 	}
@@ -136,14 +126,14 @@ func (bmr *WalletRequest) Get(ctx context.Context, walletID string) (*Wallet, *E
 	return result.Wallet, nil
 }
 
-func (bmr *WalletRequest) GetList(ctx context.Context, walletListInput *WalletListInput) (*WalletResult, *Error) {
-	u := bmr.client.url("wallets", walletListInput.query())
-	return get[WalletResult](ctx, bmr.client, u)
+func (c *Client) ListWallets(ctx context.Context, walletListInput *WalletListInput) (*WalletResult, *Error) {
+	u := c.url("wallets", walletListInput.query())
+	return get[WalletResult](ctx, c, u)
 }
 
-func (bmr *WalletRequest) Create(ctx context.Context, walletInput *WalletInput) (*Wallet, *Error) {
-	u := bmr.client.url("wallets", nil)
-	result, err := post[WalletParams, WalletResult](ctx, bmr.client, u, &WalletParams{WalletInput: walletInput})
+func (c *Client) CreateWallet(ctx context.Context, walletInput *WalletInput) (*Wallet, *Error) {
+	u := c.url("wallets", nil)
+	result, err := post[WalletParams, WalletResult](ctx, c, u, &WalletParams{WalletInput: walletInput})
 	if err != nil {
 		return nil, err
 	}
@@ -151,9 +141,9 @@ func (bmr *WalletRequest) Create(ctx context.Context, walletInput *WalletInput) 
 	return result.Wallet, nil
 }
 
-func (bmr *WalletRequest) Update(ctx context.Context, walletInput *WalletInput, walletID string) (*Wallet, *Error) {
-	u := bmr.client.url("wallets/"+walletID, nil)
-	result, err := put[WalletParams, WalletResult](ctx, bmr.client, u, &WalletParams{WalletInput: walletInput})
+func (c *Client) UpdateWallet(ctx context.Context, walletInput *WalletInput, walletID string) (*Wallet, *Error) {
+	u := c.url("wallets/"+walletID, nil)
+	result, err := put[WalletParams, WalletResult](ctx, c, u, &WalletParams{WalletInput: walletInput})
 	if err != nil {
 		return nil, err
 	}
@@ -161,9 +151,9 @@ func (bmr *WalletRequest) Update(ctx context.Context, walletInput *WalletInput, 
 	return result.Wallet, nil
 }
 
-func (bmr *WalletRequest) Delete(ctx context.Context, walletID string) (*Wallet, *Error) {
-	u := bmr.client.url("wallets/"+walletID, nil)
-	result, err := delete[WalletResult](ctx, bmr.client, u)
+func (c *Client) DeleteWallet(ctx context.Context, walletID string) (*Wallet, *Error) {
+	u := c.url("wallets/"+walletID, nil)
+	result, err := delete[WalletResult](ctx, c, u)
 	if err != nil {
 		return nil, err
 	}

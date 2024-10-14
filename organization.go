@@ -12,10 +12,6 @@ const (
 	DocumentNumberingPerOrganization OrganizationDocumentNumbering = "per_organization"
 )
 
-type OrganizationRequest struct {
-	client *Client
-}
-
 type OrganizationParams struct {
 	Organization *OrganizationInput `json:"organization"`
 }
@@ -91,15 +87,9 @@ type Organization struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 }
 
-func (c *Client) Organization() *OrganizationRequest {
-	return &OrganizationRequest{
-		client: c,
-	}
-}
-
-func (or *OrganizationRequest) Update(ctx context.Context, organizationInput *OrganizationInput) (*Organization, *Error) {
-	u := or.client.url("organizations", nil)
-	result, err := put[OrganizationParams, OrganizationResult](ctx, or.client, u, &OrganizationParams{Organization: organizationInput})
+func (c *Client) UpdateOrganization(ctx context.Context, organizationInput *OrganizationInput) (*Organization, *Error) {
+	u := c.url("organizations", nil)
+	result, err := put[OrganizationParams, OrganizationResult](ctx, c, u, &OrganizationParams{Organization: organizationInput})
 	if err != nil {
 		return nil, err
 	}
