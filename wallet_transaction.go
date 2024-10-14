@@ -32,10 +32,6 @@ const (
 	Inbound  TransactionType = "inbound"
 )
 
-type WalletTransactionRequest struct {
-	client *Client
-}
-
 type WalletTransactionListInput struct {
 	PerPage           int                     `json:"per_page,omitempty,string"`
 	Page              int                     `json:"page,omitempty,string"`
@@ -111,18 +107,12 @@ type WalletTransaction struct {
 	Metadata                         []*WalletTransactionMetadata `json:"metadata,omitempty"`
 }
 
-func (c *Client) WalletTransaction() *WalletTransactionRequest {
-	return &WalletTransactionRequest{
-		client: c,
-	}
+func (c *Client) CreateWalletTransaction(ctx context.Context, walletTransactionInput *WalletTransactionInput) (*WalletTransactionResult, *Error) {
+	u := c.url("wallet_transactions", nil)
+	return post[WalletTransactionParams, WalletTransactionResult](ctx, c, u, &WalletTransactionParams{WalletTransactionInput: walletTransactionInput})
 }
 
-func (wtr *WalletTransactionRequest) Create(ctx context.Context, walletTransactionInput *WalletTransactionInput) (*WalletTransactionResult, *Error) {
-	u := wtr.client.url("wallet_transactions", nil)
-	return post[WalletTransactionParams, WalletTransactionResult](ctx, wtr.client, u, &WalletTransactionParams{WalletTransactionInput: walletTransactionInput})
-}
-
-func (wtr *WalletTransactionRequest) GetList(ctx context.Context, walletTransactionListInput *WalletTransactionListInput) (*WalletTransactionResult, *Error) {
-	u := wtr.client.url("wallets/"+walletTransactionListInput.WalletID+"/wallet_transactions", walletTransactionListInput.query())
-	return get[WalletTransactionResult](ctx, wtr.client, u)
+func (c *Client) ListWalletTransactions(ctx context.Context, walletTransactionListInput *WalletTransactionListInput) (*WalletTransactionResult, *Error) {
+	u := c.url("wallets/"+walletTransactionListInput.WalletID+"/wallet_transactions", walletTransactionListInput.query())
+	return get[WalletTransactionResult](ctx, c, u)
 }

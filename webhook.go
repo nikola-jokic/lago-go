@@ -13,19 +13,9 @@ import (
 	jwt "github.com/golang-jwt/jwt/v5"
 )
 
-type WebhookRequest struct {
-	client *Client
-}
-
-func (c *Client) Webhook() *WebhookRequest {
-	return &WebhookRequest{
-		client: c,
-	}
-}
-
-func (wr *WebhookRequest) GetPublicKey(ctx context.Context) (*rsa.PublicKey, *Error) {
-	u := wr.client.url("webhooks/public_key", nil)
-	result, err := get[string](ctx, wr.client, u)
+func (c *Client) GetWebhookPublicKey(ctx context.Context) (*rsa.PublicKey, *Error) {
+	u := c.url("webhooks/public_key", nil)
+	result, err := get[string](ctx, c, u)
 	if err != nil {
 		return nil, err
 	}
@@ -71,8 +61,8 @@ func (wr *WebhookRequest) GetPublicKey(ctx context.Context) (*rsa.PublicKey, *Er
 	return rsaPublicKey, nil
 }
 
-func (wr *WebhookRequest) parseSignature(ctx context.Context, signature string) (*jwt.Token, *Error) {
-	publicKey, err := wr.GetPublicKey(ctx)
+func (c *Client) parseSignature(ctx context.Context, signature string) (*jwt.Token, *Error) {
+	publicKey, err := c.GetWebhookPublicKey(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -94,16 +84,16 @@ func (wr *WebhookRequest) parseSignature(ctx context.Context, signature string) 
 	return token, nil
 }
 
-func (wr *WebhookRequest) ValidateSignature(ctx context.Context, signature string) (bool, *Error) {
-	if token, err := wr.parseSignature(ctx, signature); err == nil && token.Valid {
+func (c *Client) ValidateSignature(ctx context.Context, signature string) (bool, *Error) {
+	if token, err := c.parseSignature(ctx, signature); err == nil && token.Valid {
 		return true, nil
 	} else {
 		return false, err
 	}
 }
 
-func (wr *WebhookRequest) ValidateBody(ctx context.Context, signature string, body string) (bool, *Error) {
-	if token, err := wr.parseSignature(ctx, signature); err == nil && token.Valid {
+func (c *Client) ValidateBody(ctx context.Context, signature string, body string) (bool, *Error) {
+	if token, err := c.parseSignature(ctx, signature); err == nil && token.Valid {
 		claims, ok := token.Claims.(jwt.MapClaims)
 		if !ok {
 			return false, &Error{

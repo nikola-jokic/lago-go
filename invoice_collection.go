@@ -8,10 +8,6 @@ import (
 
 type PaymentStatus string
 
-type InvoiceCollectionRequest struct {
-	client *Client
-}
-
 type InvoiceCollectionListInput struct {
 	AmountCurrency string `json:"currency,omitempty"`
 	Months         int    `json:"months,omitempty,string"`
@@ -44,13 +40,7 @@ type InvoiceCollection struct {
 	AmountCurrency Currency             `json:"currency,omitempty"`
 }
 
-func (c *Client) InvoiceCollection() *InvoiceCollectionRequest {
-	return &InvoiceCollectionRequest{
-		client: c,
-	}
-}
-
-func (adr *InvoiceCollectionRequest) GetList(ctx context.Context, InvoiceCollectionListInput *InvoiceCollectionListInput) (*InvoiceCollectionResult, *Error) {
-	u := adr.client.url("analytics/invoice_collection", InvoiceCollectionListInput.query())
-	return get[InvoiceCollectionResult](ctx, adr.client, u)
+func (c *Client) ListInvoiceCollections(ctx context.Context, InvoiceCollectionListInput *InvoiceCollectionListInput) (*InvoiceCollectionResult, *Error) {
+	u := c.url("analytics/invoice_collection", InvoiceCollectionListInput.query())
+	return get[InvoiceCollectionResult](ctx, c, u)
 }

@@ -9,10 +9,6 @@ import (
 	"github.com/google/uuid"
 )
 
-type PlanRequest struct {
-	client *Client
-}
-
 type PlanResult struct {
 	Plan  *Plan    `json:"plan,omitempty"`
 	Plans []*Plan  `json:"plans,omitempty"`
@@ -122,15 +118,9 @@ type Plan struct {
 	UsageThresholds []*UsageThreshold `json:"usage_thresholds,omitempty"`
 }
 
-func (c *Client) Plan() *PlanRequest {
-	return &PlanRequest{
-		client: c,
-	}
-}
-
-func (pr *PlanRequest) Get(ctx context.Context, planCode string) (*Plan, *Error) {
-	u := pr.client.url("plans/"+planCode, nil)
-	result, err := get[PlanResult](ctx, pr.client, u)
+func (c *Client) GetPlan(ctx context.Context, planCode string) (*Plan, *Error) {
+	u := c.url("plans/"+planCode, nil)
+	result, err := get[PlanResult](ctx, c, u)
 	if err != nil {
 		return nil, err
 	}
@@ -138,14 +128,14 @@ func (pr *PlanRequest) Get(ctx context.Context, planCode string) (*Plan, *Error)
 	return result.Plan, nil
 }
 
-func (pr *PlanRequest) GetList(ctx context.Context, planListInput *PlanListInput) (*PlanResult, *Error) {
-	u := pr.client.url("plans", planListInput.query())
-	return get[PlanResult](ctx, pr.client, u)
+func (c *Client) ListPlans(ctx context.Context, planListInput *PlanListInput) (*PlanResult, *Error) {
+	u := c.url("plans", planListInput.query())
+	return get[PlanResult](ctx, c, u)
 }
 
-func (pr *PlanRequest) Create(ctx context.Context, planInput *PlanInput) (*Plan, *Error) {
-	u := pr.client.url("plans", nil)
-	result, err := post[PlanParams, PlanResult](ctx, pr.client, u, &PlanParams{Plan: planInput})
+func (c *Client) CreatePlan(ctx context.Context, planInput *PlanInput) (*Plan, *Error) {
+	u := c.url("plans", nil)
+	result, err := post[PlanParams, PlanResult](ctx, c, u, &PlanParams{Plan: planInput})
 	if err != nil {
 		return nil, err
 	}
@@ -153,9 +143,9 @@ func (pr *PlanRequest) Create(ctx context.Context, planInput *PlanInput) (*Plan,
 	return result.Plan, nil
 }
 
-func (pr *PlanRequest) Update(ctx context.Context, planInput *PlanInput) (*Plan, *Error) {
-	u := pr.client.url("plans/"+planInput.Code, nil)
-	result, err := put[PlanParams, PlanResult](ctx, pr.client, u, &PlanParams{Plan: planInput})
+func (c *Client) UpdatePlan(ctx context.Context, planInput *PlanInput) (*Plan, *Error) {
+	u := c.url("plans/"+planInput.Code, nil)
+	result, err := put[PlanParams, PlanResult](ctx, c, u, &PlanParams{Plan: planInput})
 	if err != nil {
 		return nil, err
 	}
@@ -163,10 +153,10 @@ func (pr *PlanRequest) Update(ctx context.Context, planInput *PlanInput) (*Plan,
 	return result.Plan, nil
 }
 
-func (pr *PlanRequest) Delete(ctx context.Context, planCode string) (*Plan, *Error) {
-	u := pr.client.url("plans/"+planCode, nil)
+func (c *Client) DeletePlan(ctx context.Context, planCode string) (*Plan, *Error) {
+	u := c.url("plans/"+planCode, nil)
 
-	result, err := delete[PlanResult](ctx, pr.client, u)
+	result, err := delete[PlanResult](ctx, c, u)
 	if err != nil {
 		return nil, err
 	}

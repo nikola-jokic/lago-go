@@ -9,10 +9,6 @@ import (
 	"github.com/google/uuid"
 )
 
-type AddOnRequest struct {
-	client *Client
-}
-
 type AddOnParams struct {
 	AddOn *AddOnInput `json:"add_on"`
 }
@@ -66,30 +62,24 @@ type AddOn struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 }
 
-func (c *Client) AddOn() *AddOnRequest {
-	return &AddOnRequest{
-		client: c,
-	}
-}
-
-func (adr *AddOnRequest) Get(ctx context.Context, addOnCode string) (*AddOn, *Error) {
-	u := adr.client.url("add_ons/"+addOnCode, nil)
-	result, err := get[AddOnResult](ctx, adr.client, u)
+func (c *Client) GetAddOn(ctx context.Context, addOnCode string) (*AddOn, *Error) {
+	u := c.url("add_ons/"+addOnCode, nil)
+	result, err := get[AddOnResult](ctx, c, u)
 	if err != nil {
 		return nil, err
 	}
 	return result.AddOn, nil
 }
 
-func (adr *AddOnRequest) GetList(ctx context.Context, addOnListInput *AddOnListInput) (*AddOnResult, *Error) {
-	u := adr.client.url("add_ons", addOnListInput.query())
+func (c *Client) ListAddOns(ctx context.Context, addOnListInput *AddOnListInput) (*AddOnResult, *Error) {
+	u := c.url("add_ons", addOnListInput.query())
 
-	return get[AddOnResult](ctx, adr.client, u)
+	return get[AddOnResult](ctx, c, u)
 }
 
-func (adr *AddOnRequest) Create(ctx context.Context, addOnInput *AddOnInput) (*AddOn, *Error) {
-	u := adr.client.url("add_ons", nil)
-	result, err := post[AddOnParams, AddOnResult](ctx, adr.client, u, &AddOnParams{AddOn: addOnInput})
+func (c *Client) CreateAddOn(ctx context.Context, addOnInput *AddOnInput) (*AddOn, *Error) {
+	u := c.url("add_ons", nil)
+	result, err := post[AddOnParams, AddOnResult](ctx, c, u, &AddOnParams{AddOn: addOnInput})
 	if err != nil {
 		return nil, err
 	}
@@ -97,10 +87,10 @@ func (adr *AddOnRequest) Create(ctx context.Context, addOnInput *AddOnInput) (*A
 	return result.AddOn, nil
 }
 
-func (adr *AddOnRequest) Update(ctx context.Context, addOnInput *AddOnInput) (*AddOn, *Error) {
-	u := adr.client.url("add_ons/"+addOnInput.Code, nil)
+func (c *Client) UpdateAddOn(ctx context.Context, addOnInput *AddOnInput) (*AddOn, *Error) {
+	u := c.url("add_ons/"+addOnInput.Code, nil)
 
-	result, err := put[AddOnParams, AddOnResult](ctx, adr.client, u, &AddOnParams{AddOn: addOnInput})
+	result, err := put[AddOnParams, AddOnResult](ctx, c, u, &AddOnParams{AddOn: addOnInput})
 	if err != nil {
 		return nil, err
 	}
@@ -108,9 +98,9 @@ func (adr *AddOnRequest) Update(ctx context.Context, addOnInput *AddOnInput) (*A
 	return result.AddOn, nil
 }
 
-func (adr *AddOnRequest) Delete(ctx context.Context, addOnCode string) (*AddOn, *Error) {
-	u := adr.client.url("add_ons/"+addOnCode, nil)
-	result, err := delete[AddOnResult](ctx, adr.client, u)
+func (c *Client) DeleteAddOn(ctx context.Context, addOnCode string) (*AddOn, *Error) {
+	u := c.url("add_ons/"+addOnCode, nil)
+	result, err := delete[AddOnResult](ctx, c, u)
 	if err != nil {
 		return nil, err
 	}

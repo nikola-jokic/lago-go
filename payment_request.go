@@ -9,10 +9,6 @@ import (
 	"github.com/google/uuid"
 )
 
-type PaymentRequestRequest struct {
-	client *Client
-}
-
 type PaymentRequestResult struct {
 	PaymentRequest  *PaymentRequest   `json:"payment_request,omitempty"`
 	PaymentRequests []*PaymentRequest `json:"payment_requests,omitempty"`
@@ -65,20 +61,14 @@ type PaymentRequestInput struct {
 	LagoInvoiceIds     []string `json:"lago_invoice_ids,omitempty"`
 }
 
-func (c *Client) PaymentRequest() *PaymentRequestRequest {
-	return &PaymentRequestRequest{
-		client: c,
-	}
+func (c *Client) ListPaymentRequests(ctx context.Context, paymentRequestListInput *PaymentRequestListInput) (*PaymentRequestResult, *Error) {
+	u := c.url("payment_requests", paymentRequestListInput.query())
+	return get[PaymentRequestResult](ctx, c, u)
 }
 
-func (ir *PaymentRequestRequest) GetList(ctx context.Context, paymentRequestListInput *PaymentRequestListInput) (*PaymentRequestResult, *Error) {
-	u := ir.client.url("payment_requests", paymentRequestListInput.query())
-	return get[PaymentRequestResult](ctx, ir.client, u)
-}
-
-func (cr *PaymentRequestRequest) Create(ctx context.Context, paymentRequestInput *PaymentRequestInput) (*PaymentRequest, *Error) {
-	u := cr.client.url("payment_requests", nil)
-	result, err := post[PaymentRequestParams, PaymentRequestResult](ctx, cr.client, u, &PaymentRequestParams{PaymentRequest: paymentRequestInput})
+func (c *Client) CreatePaymentRequest(ctx context.Context, paymentRequestInput *PaymentRequestInput) (*PaymentRequest, *Error) {
+	u := c.url("payment_requests", nil)
+	result, err := post[PaymentRequestParams, PaymentRequestResult](ctx, c, u, &PaymentRequestParams{PaymentRequest: paymentRequestInput})
 	if err != nil {
 		return nil, err
 	}

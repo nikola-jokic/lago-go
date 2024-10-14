@@ -6,10 +6,6 @@ import (
 	"strconv"
 )
 
-type GrossRevenueRequest struct {
-	client *Client
-}
-
 type GrossRevenueListInput struct {
 	AmountCurrency     string `json:"currency,omitempty"`
 	ExternalCustomerId string `json:"external_customer_id,omitempty"`
@@ -46,13 +42,7 @@ type GrossRevenue struct {
 	InvoicesCount  int      `json:"invoices_count,omitempty"`
 }
 
-func (c *Client) GrossRevenue() *GrossRevenueRequest {
-	return &GrossRevenueRequest{
-		client: c,
-	}
-}
-
-func (adr *GrossRevenueRequest) GetList(ctx context.Context, GrossRevenueListInput *GrossRevenueListInput) (*GrossRevenueResult, *Error) {
-	u := adr.client.url("analytics/gross_revenue", GrossRevenueListInput.query())
-	return get[GrossRevenueResult](ctx, adr.client, u)
+func (c *Client) ListGrossRevenues(ctx context.Context, GrossRevenueListInput *GrossRevenueListInput) (*GrossRevenueResult, *Error) {
+	u := c.url("analytics/gross_revenue", GrossRevenueListInput.query())
+	return get[GrossRevenueResult](ctx, c, u)
 }
