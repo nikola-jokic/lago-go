@@ -45,8 +45,8 @@ type InvoiceResult struct {
 	Meta     Metadata   `json:"meta,omitempty"`
 }
 
-type InvoicePaymentUrlResult struct {
-	InvoicePaymentUrl *InvoicePaymentURL `json:"invoice_payment_url"`
+type InvoicePaymentURLResult struct {
+	InvoicePaymentURL *InvoicePaymentURL `json:"invoice_payment_url"`
 }
 
 type InvoiceParams struct {
@@ -227,7 +227,7 @@ type Invoice struct {
 }
 
 type InvoicePaymentURL struct {
-	PaymentUrl string `json:"payment_url,omitempty"`
+	PaymentURL string `json:"payment_url,omitempty"`
 }
 
 func (c *Client) GetInvoice(ctx context.Context, invoiceID string) (*Invoice, *Error) {
@@ -327,10 +327,10 @@ func (c *Client) RetryInvoicePayment(ctx context.Context, invoiceID string) (*In
 
 func (c *Client) GetInvoicePaymentURL(ctx context.Context, invoiceID string) (*InvoicePaymentURL, *Error) {
 	u := c.url("invoices/"+invoiceID+"/payment_url", nil)
-	result, err := postWithoutBody[InvoicePaymentUrlResult](ctx, c, u)
+	result, err := postWithoutBody[InvoicePaymentURLResult](ctx, c, u)
 	if err != nil {
 		return nil, err
 	}
 
-	return result.InvoicePaymentUrl, nil
+	return result.InvoicePaymentURL, nil
 }

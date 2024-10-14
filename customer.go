@@ -59,12 +59,12 @@ type CustomerPastUsageResult struct {
 	Meta         Metadata         `json:"metadata"`
 }
 
-type CustomerPortalUrlResult struct {
-	CustomerPortalUrl *CustomerPortalURL `json:"customer"`
+type CustomerPortalURLResult struct {
+	CustomerPortalURL *CustomerPortalURL `json:"customer"`
 }
 
-type CustomerCheckoutUrlResult struct {
-	CustomerCheckoutUrl *CustomerCheckoutURL `json:"customer"`
+type CustomerCheckoutURLResult struct {
+	CustomerCheckoutURL *CustomerCheckoutURL `json:"customer"`
 }
 
 type CustomerMetadataInput struct {
@@ -217,11 +217,11 @@ type CustomerUsage struct {
 }
 
 type CustomerPortalURL struct {
-	PortalUrl string `json:"portal_url,omitempty"`
+	PortalURL string `json:"portal_url,omitempty"`
 }
 
 type CustomerCheckoutURL struct {
-	CheckoutUrl string `json:"checkout_url,omitempty"`
+	CheckoutURL string `json:"checkout_url,omitempty"`
 }
 
 type CustomerUsageInput struct {
@@ -333,22 +333,22 @@ func (c *Client) CustomersPastUsage(ctx context.Context, externalCustomerID stri
 
 func (c *Client) CustomersPortalURL(ctx context.Context, externalCustomerID string) (*CustomerPortalURL, *Error) {
 	u := c.url("customers/"+externalCustomerID+"/portal_url", nil)
-	result, err := get[CustomerPortalUrlResult](ctx, c, u)
+	result, err := get[CustomerPortalURLResult](ctx, c, u)
 	if err != nil {
 		return nil, err
 	}
 
-	return result.CustomerPortalUrl, nil
+	return result.CustomerPortalURL, nil
 }
 
 func (c *Client) CustomersCheckoutURL(ctx context.Context, externalCustomerID string) (*CustomerCheckoutURL, *Error) {
 	u := c.url("customers/"+externalCustomerID+"/checkout_url", nil)
-	result, err := get[CustomerCheckoutUrlResult](ctx, c, u)
+	result, err := get[CustomerCheckoutURLResult](ctx, c, u)
 	if err != nil {
 		return nil, err
 	}
 
-	return result.CustomerCheckoutUrl, nil
+	return result.CustomerCheckoutURL, nil
 }
 
 func (c *Client) DeleteCustomer(ctx context.Context, externalCustomerID string) (*Customer, *Error) {
