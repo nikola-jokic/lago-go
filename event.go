@@ -24,7 +24,7 @@ type EventInput struct {
 	Properties              map[string]interface{} `json:"properties,omitempty"`
 }
 
-type EventEstimateFeesParams struct {
+type eventEstimateFeesParams struct {
 	Event *EventEstimateFeesInput `json:"event"`
 }
 
@@ -72,11 +72,11 @@ func (c *Client) CreateEvent(ctx context.Context, eventInput *EventInput) (*Even
 
 func (c *Client) EstimateEventFees(ctx context.Context, estimateInput EventEstimateFeesInput) (*feeResult, *Error) {
 	u := c.url("events/estimate_fees", nil)
-	return post[EventEstimateFeesParams, feeResult](
+	return post[eventEstimateFeesParams, feeResult](
 		ctx,
 		c,
 		u,
-		&EventEstimateFeesParams{Event: &estimateInput},
+		&eventEstimateFeesParams{Event: &estimateInput},
 	)
 }
 

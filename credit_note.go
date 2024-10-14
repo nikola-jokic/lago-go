@@ -181,7 +181,7 @@ type CreditNoteEstimateInput struct {
 	Items         []*CreditNoteItemInput `json:"items,omitempty"`
 }
 
-type CreditNoteEstimateParams struct {
+type creditNoteEstimateParams struct {
 	CreditNote *CreditNoteEstimateInput `json:"credit_note"`
 }
 
@@ -253,11 +253,11 @@ func (c *Client) VoidCreditNote(ctx context.Context, creditNoteID string) (*Cred
 func (c *Client) EstimateCreditNote(ctx context.Context, creditNoteEstimateInput *CreditNoteEstimateInput) (*CreditNoteEstimated, *Error) {
 	u := c.url("credit_notes/estimate", nil)
 
-	result, err := post[CreditNoteEstimateParams, CreditNoteEstimatedResult](
+	result, err := post[creditNoteEstimateParams, CreditNoteEstimatedResult](
 		ctx,
 		c,
 		u,
-		&CreditNoteEstimateParams{CreditNote: creditNoteEstimateInput},
+		&creditNoteEstimateParams{CreditNote: creditNoteEstimateInput},
 	)
 	if err != nil {
 		return nil, err
