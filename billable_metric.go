@@ -26,7 +26,7 @@ const (
 	SecondsInterval WeightedInterval = "seconds"
 )
 
-type BillableMetricParams struct {
+type billableMetricParams struct {
 	BillableMetricInput *BillableMetricInput `json:"billable_metric,omitempty"`
 }
 
@@ -58,10 +58,13 @@ func (i *BillableMetricListInput) query() url.Values {
 	return q
 }
 
-type BillableMetricResult struct {
-	BillableMetric  *BillableMetric   `json:"billable_metric,omitempty"`
+type BillableMetricList struct {
 	BillableMetrics []*BillableMetric `json:"billable_metrics,omitempty"`
 	Meta            Metadata          `json:"meta,omitempty"`
+}
+
+type billableMetricResult struct {
+	BillableMetric *BillableMetric `json:"billable_metric,omitempty"`
 }
 
 type BillableMetricFilter struct {
@@ -88,7 +91,7 @@ type BillableMetric struct {
 func (c *Client) GetBillableMetric(ctx context.Context, billableMetricCode string) (*BillableMetric, *Error) {
 	u := c.url("billable_metrics/"+billableMetricCode, nil)
 
-	result, err := get[BillableMetricResult](ctx, c, u)
+	result, err := get[billableMetricResult](ctx, c, u)
 	if err != nil {
 		return nil, err
 	}
@@ -96,16 +99,16 @@ func (c *Client) GetBillableMetric(ctx context.Context, billableMetricCode strin
 	return result.BillableMetric, nil
 }
 
-func (c *Client) ListBillableMetrics(ctx context.Context, billableMetricListInput *BillableMetricListInput) (*BillableMetricResult, *Error) {
+func (c *Client) ListBillableMetrics(ctx context.Context, billableMetricListInput *BillableMetricListInput) (*BillableMetricList, *Error) {
 
 	u := c.url("billable_metrics", billableMetricListInput.query())
-	return get[BillableMetricResult](ctx, c, u)
+	return get[BillableMetricList](ctx, c, u)
 }
 
 func (c *Client) CreateBillableMetric(ctx context.Context, billableMetricInput *BillableMetricInput) (*BillableMetric, *Error) {
 	u := c.url("billable_metrics", nil)
 
-	result, err := post[BillableMetricParams, BillableMetricResult](ctx, c, u, &BillableMetricParams{BillableMetricInput: billableMetricInput})
+	result, err := post[billableMetricParams, billableMetricResult](ctx, c, u, &billableMetricParams{BillableMetricInput: billableMetricInput})
 	if err != nil {
 		return nil, err
 	}
@@ -116,7 +119,7 @@ func (c *Client) CreateBillableMetric(ctx context.Context, billableMetricInput *
 func (c *Client) UpdateBillableMetric(ctx context.Context, billableMetricInput *BillableMetricInput) (*BillableMetric, *Error) {
 	u := c.url("billable_metrics/"+billableMetricInput.Code, nil)
 
-	result, err := put[BillableMetricParams, BillableMetricResult](ctx, c, u, &BillableMetricParams{BillableMetricInput: billableMetricInput})
+	result, err := put[billableMetricParams, billableMetricResult](ctx, c, u, &billableMetricParams{BillableMetricInput: billableMetricInput})
 	if err != nil {
 		return nil, err
 	}
@@ -127,7 +130,7 @@ func (c *Client) UpdateBillableMetric(ctx context.Context, billableMetricInput *
 func (c *Client) DeleteBillableMetric(ctx context.Context, billableMetricCode string) (*BillableMetric, *Error) {
 	u := c.url("billable_metrics/"+billableMetricCode, nil)
 
-	result, err := delete[BillableMetricResult](ctx, c, u)
+	result, err := delete[billableMetricResult](ctx, c, u)
 	if err != nil {
 		return nil, err
 	}

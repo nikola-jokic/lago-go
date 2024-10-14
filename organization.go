@@ -12,7 +12,7 @@ const (
 	DocumentNumberingPerOrganization OrganizationDocumentNumbering = "per_organization"
 )
 
-type OrganizationParams struct {
+type organizationParams struct {
 	Organization *OrganizationInput `json:"organization"`
 }
 
@@ -89,7 +89,7 @@ type Organization struct {
 
 func (c *Client) UpdateOrganization(ctx context.Context, organizationInput *OrganizationInput) (*Organization, *Error) {
 	u := c.url("organizations", nil)
-	result, err := put[OrganizationParams, OrganizationResult](ctx, c, u, &OrganizationParams{Organization: organizationInput})
+	result, err := put[organizationParams, OrganizationResult](ctx, c, u, &organizationParams{Organization: organizationInput})
 	if err != nil {
 		return nil, err
 	}

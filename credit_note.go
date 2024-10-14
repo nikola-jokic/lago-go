@@ -33,12 +33,15 @@ const (
 	CreditNoteReasonOther                 CreditNoteReason = "other"
 )
 
-type CreditNoteParams struct {
+type creditNoteParams struct {
 	CreditNote *CreditNoteInput `json:"credit_note"`
 }
 
-type CreditNoteResult struct {
-	CreditNote  *CreditNote   `json:"credit_note,omitempty"`
+type creditNoteResult struct {
+	CreditNote *CreditNote `json:"credit_note,omitempty"`
+}
+
+type CreditNoteList struct {
 	CreditNotes []*CreditNote `json:"credit_notes,omitempty"`
 	Meta        Metadata      `json:"meta,omitempty"`
 }
@@ -167,7 +170,7 @@ type CreditNoteUpdateInput struct {
 	RefundStatus CreditNoteRefundStatus `json:"refund_status,omitempty"`
 }
 
-type CreditNoteUpdateParams struct {
+type creditNoteUpdateParams struct {
 	CreditNote *CreditNoteUpdateInput `json:"credit_note"`
 }
 
@@ -182,7 +185,7 @@ type CreditNoteEstimateParams struct {
 
 func (c *Client) GetCreditNote(ctx context.Context, creditNoteID uuid.UUID) (*CreditNote, *Error) {
 	u := fmt.Sprintf("credit_notes/%s", creditNoteID)
-	result, err := get[CreditNoteResult](ctx, c, u)
+	result, err := get[creditNoteResult](ctx, c, u)
 	if err != nil {
 		return nil, err
 	}
@@ -191,7 +194,7 @@ func (c *Client) GetCreditNote(ctx context.Context, creditNoteID uuid.UUID) (*Cr
 
 func (c *Client) DownloadCreditNote(ctx context.Context, creditNoteID string) (*CreditNote, *Error) {
 	u := c.url("credit_notes/"+creditNoteID+"/download", nil)
-	result, err := postWithoutBody[CreditNoteResult](ctx, c, u)
+	result, err := postWithoutBody[creditNoteResult](ctx, c, u)
 	if err != nil {
 		return nil, err
 	}
@@ -199,14 +202,14 @@ func (c *Client) DownloadCreditNote(ctx context.Context, creditNoteID string) (*
 	return result.CreditNote, nil
 }
 
-func (c *Client) ListCreditNotes(ctx context.Context, creditNoteListInput *CreditListInput) (*CreditNoteResult, *Error) {
+func (c *Client) ListCreditNotes(ctx context.Context, creditNoteListInput *CreditListInput) (*CreditNoteList, *Error) {
 	u := c.url("credit_notes", creditNoteListInput.query())
-	return get[CreditNoteResult](ctx, c, u)
+	return get[CreditNoteList](ctx, c, u)
 }
 
 func (c *Client) CreateCreditNote(ctx context.Context, creditNoteInput *CreditNoteInput) (*CreditNote, *Error) {
 	u := c.url("credit_notes", nil)
-	result, err := post[CreditNoteParams, CreditNoteResult](ctx, c, u, &CreditNoteParams{CreditNote: creditNoteInput})
+	result, err := post[creditNoteParams, creditNoteResult](ctx, c, u, &creditNoteParams{CreditNote: creditNoteInput})
 	if err != nil {
 		return nil, err
 	}
@@ -217,7 +220,7 @@ func (c *Client) CreateCreditNote(ctx context.Context, creditNoteInput *CreditNo
 func (c *Client) UpdateCreditNote(ctx context.Context, creditNoteUpdateInput *CreditNoteUpdateInput) (*CreditNote, *Error) {
 	u := c.url("credit_notes/"+creditNoteUpdateInput.LagoID, nil)
 
-	result, err := put[CreditNoteUpdateParams, CreditNoteResult](ctx, c, u, &CreditNoteUpdateParams{CreditNote: creditNoteUpdateInput})
+	result, err := put[creditNoteUpdateParams, creditNoteResult](ctx, c, u, &creditNoteUpdateParams{CreditNote: creditNoteUpdateInput})
 	if err != nil {
 		return nil, err
 	}
@@ -227,7 +230,7 @@ func (c *Client) UpdateCreditNote(ctx context.Context, creditNoteUpdateInput *Cr
 
 func (c *Client) VoidCreditNote(ctx context.Context, creditNoteID string) (*CreditNote, *Error) {
 	u := c.url("credit_notes/"+creditNoteID+"/void", nil)
-	result, err := putWithoutBody[CreditNoteResult](ctx, c, u)
+	result, err := putWithoutBody[creditNoteResult](ctx, c, u)
 
 	if err != nil {
 		return nil, err

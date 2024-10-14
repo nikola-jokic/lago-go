@@ -45,7 +45,7 @@ type RecurringTransactionRuleResponse struct {
 	TransactionMetadata              []*WalletTransactionMetadata `json:"transaction_metadata,omitempty"`
 }
 
-type WalletParams struct {
+type walletParams struct {
 	WalletInput *WalletInput `json:"wallet"`
 }
 
@@ -86,8 +86,11 @@ func (i *WalletListInput) query() url.Values {
 	return q
 }
 
-type WalletResult struct {
-	Wallet  *Wallet   `json:"wallet,omitempty"`
+type walletResult struct {
+	Wallet *Wallet `json:"wallet,omitempty"`
+}
+
+type WalletList struct {
 	Wallets []*Wallet `json:"wallets,omitempty"`
 	Meta    Metadata  `json:"meta,omitempty"`
 }
@@ -118,7 +121,7 @@ type Wallet struct {
 
 func (c *Client) GetWallet(ctx context.Context, walletID string) (*Wallet, *Error) {
 	u := c.url("wallets/"+walletID, nil)
-	result, err := get[WalletResult](ctx, c, u)
+	result, err := get[walletResult](ctx, c, u)
 	if err != nil {
 		return nil, err
 	}
@@ -126,14 +129,14 @@ func (c *Client) GetWallet(ctx context.Context, walletID string) (*Wallet, *Erro
 	return result.Wallet, nil
 }
 
-func (c *Client) ListWallets(ctx context.Context, walletListInput *WalletListInput) (*WalletResult, *Error) {
+func (c *Client) ListWallets(ctx context.Context, walletListInput *WalletListInput) (*WalletList, *Error) {
 	u := c.url("wallets", walletListInput.query())
-	return get[WalletResult](ctx, c, u)
+	return get[WalletList](ctx, c, u)
 }
 
 func (c *Client) CreateWallet(ctx context.Context, walletInput *WalletInput) (*Wallet, *Error) {
 	u := c.url("wallets", nil)
-	result, err := post[WalletParams, WalletResult](ctx, c, u, &WalletParams{WalletInput: walletInput})
+	result, err := post[walletParams, walletResult](ctx, c, u, &walletParams{WalletInput: walletInput})
 	if err != nil {
 		return nil, err
 	}
@@ -143,7 +146,7 @@ func (c *Client) CreateWallet(ctx context.Context, walletInput *WalletInput) (*W
 
 func (c *Client) UpdateWallet(ctx context.Context, walletInput *WalletInput, walletID string) (*Wallet, *Error) {
 	u := c.url("wallets/"+walletID, nil)
-	result, err := put[WalletParams, WalletResult](ctx, c, u, &WalletParams{WalletInput: walletInput})
+	result, err := put[walletParams, walletResult](ctx, c, u, &walletParams{WalletInput: walletInput})
 	if err != nil {
 		return nil, err
 	}
@@ -153,7 +156,7 @@ func (c *Client) UpdateWallet(ctx context.Context, walletInput *WalletInput, wal
 
 func (c *Client) DeleteWallet(ctx context.Context, walletID string) (*Wallet, *Error) {
 	u := c.url("wallets/"+walletID, nil)
-	result, err := delete[WalletResult](ctx, c, u)
+	result, err := delete[walletResult](ctx, c, u)
 	if err != nil {
 		return nil, err
 	}

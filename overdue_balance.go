@@ -30,8 +30,7 @@ func (i *OverdueBalanceListInput) query() url.Values {
 	return q
 }
 
-type OverdueBalanceResult struct {
-	OverdueBalance  *OverdueBalance   `json:"overdue_balance,omitempty"`
+type OverdueBalanceList struct {
 	OverdueBalances []*OverdueBalance `json:"overdue_balances,omitempty"`
 }
 
@@ -41,7 +40,7 @@ type OverdueBalance struct {
 	AmountCurrency Currency `json:"currency,omitempty"`
 }
 
-func (c *Client) ListOverdueBalances(ctx context.Context, OverdueBalanceListInput *OverdueBalanceListInput) (*OverdueBalanceResult, *Error) {
+func (c *Client) ListOverdueBalances(ctx context.Context, OverdueBalanceListInput *OverdueBalanceListInput) (*OverdueBalanceList, *Error) {
 	u := c.url("analytics/overdue_balance", OverdueBalanceListInput.query())
-	return get[OverdueBalanceResult](ctx, c, u)
+	return get[OverdueBalanceList](ctx, c, u)
 }

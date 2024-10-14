@@ -25,8 +25,7 @@ func (i *MrrListInput) query() url.Values {
 	return q
 }
 
-type MrrResult struct {
-	Mrr  *Mrr   `json:"mrr,omitempty"`
+type MrrList struct {
 	Mrrs []*Mrr `json:"mrrs,omitempty"`
 }
 
@@ -36,7 +35,7 @@ type Mrr struct {
 	AmountCurrency Currency `json:"currency,omitempty"`
 }
 
-func (c *Client) ListMrrs(ctx context.Context, MrrListInput *MrrListInput) (*MrrResult, *Error) {
+func (c *Client) ListMrrs(ctx context.Context, MrrListInput *MrrListInput) (*MrrList, *Error) {
 	u := c.url("analytics/mrr", MrrListInput.query())
-	return get[MrrResult](ctx, c, u)
+	return get[MrrList](ctx, c, u)
 }

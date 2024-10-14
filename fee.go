@@ -10,14 +10,14 @@ import (
 )
 
 type FeeType string
-type FeePaymentStatus string
-type FeeItemType string
 
 const (
 	FeeItemSubscription FeeType = "subscription"
 	FeeItemCharge       FeeType = "charge"
 	FeeItemAddOn        FeeType = "add_on"
 )
+
+type FeePaymentStatus string
 
 const (
 	FeePaymentStatusPending   FeePaymentStatus = "pending"
@@ -26,6 +26,8 @@ const (
 	FeePaymentStatusRefunded  FeePaymentStatus = "refunded"
 )
 
+type FeeItemType string
+
 const (
 	FeeAddOnType         FeeItemType = "AddOn"
 	FeeBillableMetric    FeeItemType = "BillableMetric"
@@ -33,13 +35,16 @@ const (
 	FeeWalletTransaction FeeItemType = "WalletTransaction"
 )
 
-type FeeResult struct {
-	Fee  *Fee     `json:"fee,omitempty"`
+type feeResult struct {
+	Fee *Fee `json:"fee,omitempty"`
+}
+
+type FeeList struct {
 	Fees []*Fee   `json:"fees,omitempty"`
 	Meta Metadata `json:"meta,omitempty"`
 }
 
-type FeeUpdateParams struct {
+type feeUpdateParams struct {
 	Fee *FeeUpdateInput `json:"fee"`
 }
 
@@ -209,7 +214,7 @@ type Fee struct {
 
 func (c *Client) GetFee(ctx context.Context, feeID string) (*Fee, *Error) {
 	u := c.url("fees/"+feeID, nil)
-	result, err := get[FeeResult](ctx, c, u)
+	result, err := get[feeResult](ctx, c, u)
 	if err != nil {
 		return nil, err
 	}
@@ -219,7 +224,7 @@ func (c *Client) GetFee(ctx context.Context, feeID string) (*Fee, *Error) {
 
 func (c *Client) UpdateFee(ctx context.Context, feeInput *FeeUpdateInput) (*Fee, *Error) {
 	u := c.url("fees/"+feeInput.LagoID.String(), nil)
-	result, err := put[FeeUpdateParams, FeeResult](ctx, c, u, &FeeUpdateParams{Fee: feeInput})
+	result, err := put[feeUpdateParams, feeResult](ctx, c, u, &feeUpdateParams{Fee: feeInput})
 	if err != nil {
 		return nil, err
 	}
@@ -227,14 +232,14 @@ func (c *Client) UpdateFee(ctx context.Context, feeInput *FeeUpdateInput) (*Fee,
 	return result.Fee, nil
 }
 
-func (c *Client) ListFees(ctx context.Context, feeListInput *FeeListInput) (*FeeResult, *Error) {
+func (c *Client) ListFees(ctx context.Context, feeListInput *FeeListInput) (*FeeList, *Error) {
 	u := c.url("fees", feeListInput.query())
-	return get[FeeResult](ctx, c, u)
+	return get[FeeList](ctx, c, u)
 }
 
 func (c *Client) DeleteFee(ctx context.Context, feeID string) (*Fee, *Error) {
 	u := c.url("fees/"+feeID, nil)
-	result, err := delete[FeeResult](ctx, c, u)
+	result, err := delete[feeResult](ctx, c, u)
 	if err != nil {
 		return nil, err
 	}

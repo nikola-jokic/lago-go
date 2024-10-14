@@ -25,8 +25,7 @@ func (i *InvoicedUsageListInput) query() url.Values {
 	return q
 }
 
-type InvoicedUsageResult struct {
-	InvoicedUsage  *InvoicedUsage   `json:"invoiced_usage,omitempty"`
+type InvoicedUsageList struct {
 	InvoicedUsages []*InvoicedUsage `json:"invoiced_usages,omitempty"`
 }
 
@@ -37,7 +36,7 @@ type InvoicedUsage struct {
 	AmountCurrency Currency `json:"currency,omitempty"`
 }
 
-func (c *Client) ListInvoiceUsages(ctx context.Context, InvoicedUsageListInput *InvoicedUsageListInput) (*InvoicedUsageResult, *Error) {
+func (c *Client) ListInvoiceUsages(ctx context.Context, InvoicedUsageListInput *InvoicedUsageListInput) (*InvoicedUsageList, *Error) {
 	u := c.url("analytics/invoiced_usage", InvoicedUsageListInput.query())
-	return get[InvoicedUsageResult](ctx, c, u)
+	return get[InvoicedUsageList](ctx, c, u)
 }

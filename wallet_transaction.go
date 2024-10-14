@@ -71,7 +71,7 @@ func (i *WalletTransactionListInput) query() url.Values {
 	return q
 }
 
-type WalletTransactionParams struct {
+type walletTransactionParams struct {
 	WalletTransactionInput *WalletTransactionInput `json:"wallet_transaction"`
 }
 
@@ -89,7 +89,7 @@ type WalletTransactionMetadata struct {
 	Value string `json:"value"`
 }
 
-type WalletTransactionResult struct {
+type WalletTransactionList struct {
 	WalletTransactions []*WalletTransaction `json:"wallet_transactions,omitempty"`
 	Meta               Metadata             `json:"meta,omitempty"`
 }
@@ -107,12 +107,12 @@ type WalletTransaction struct {
 	Metadata                         []*WalletTransactionMetadata `json:"metadata,omitempty"`
 }
 
-func (c *Client) CreateWalletTransaction(ctx context.Context, walletTransactionInput *WalletTransactionInput) (*WalletTransactionResult, *Error) {
+func (c *Client) CreateWalletTransaction(ctx context.Context, walletTransactionInput *WalletTransactionInput) (*WalletTransactionList, *Error) {
 	u := c.url("wallet_transactions", nil)
-	return post[WalletTransactionParams, WalletTransactionResult](ctx, c, u, &WalletTransactionParams{WalletTransactionInput: walletTransactionInput})
+	return post[walletTransactionParams, WalletTransactionList](ctx, c, u, &walletTransactionParams{WalletTransactionInput: walletTransactionInput})
 }
 
-func (c *Client) ListWalletTransactions(ctx context.Context, walletTransactionListInput *WalletTransactionListInput) (*WalletTransactionResult, *Error) {
+func (c *Client) ListWalletTransactions(ctx context.Context, walletTransactionListInput *WalletTransactionListInput) (*WalletTransactionList, *Error) {
 	u := c.url("wallets/"+walletTransactionListInput.WalletID+"/wallet_transactions", walletTransactionListInput.query())
-	return get[WalletTransactionResult](ctx, c, u)
+	return get[WalletTransactionList](ctx, c, u)
 }
