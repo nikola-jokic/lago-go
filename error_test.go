@@ -24,7 +24,7 @@ func TestErrorNoErr(t *testing.T) {
 }
 
 func TestErrorDetails(t *testing.T) {
-	var tests = []struct {
+	tests := []struct {
 		name  string
 		input string
 		want  *Error
@@ -45,13 +45,10 @@ func TestErrorDetails(t *testing.T) {
 				HTTPStatusCode: 422,
 				Message:        "Unprocessable Entity",
 				ErrorCode:      "validation_errors",
-				ErrorDetail: &ErrorDetail{
-					Multiple: false,
-					Errors: map[int]map[string][]string{
-						0: {
-							"transaction_id": {
-								"value_already_exist",
-							},
+				ErrorDetail: map[int]map[string][]string{
+					0: {
+						"transaction_id": {
+							"value_already_exist",
 						},
 					},
 				},
@@ -85,23 +82,20 @@ func TestErrorDetails(t *testing.T) {
 				HTTPStatusCode: 422,
 				Message:        "Unprocessable Entity",
 				ErrorCode:      "validation_errors",
-				ErrorDetail: &ErrorDetail{
-					Multiple: true,
-					Errors: map[int]map[string][]string{
-						0: {
-							"transaction_id": {
-								"value_already_exist",
-							},
+				ErrorDetail: map[int]map[string][]string{
+					0: {
+						"transaction_id": {
+							"value_already_exist",
 						},
-						1: {
-							"transaction_id": {
-								"value_already_exist",
-							},
+					},
+					1: {
+						"transaction_id": {
+							"value_already_exist",
 						},
-						2: {
-							"transaction_id": {
-								"value_already_exist",
-							},
+					},
+					2: {
+						"transaction_id": {
+							"value_already_exist",
 						},
 					},
 				},
