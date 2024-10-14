@@ -2,51 +2,17 @@ package lago
 
 import (
 	"encoding/json"
-	"errors"
 	"io"
 )
 
-type ErrorCode string
-
-const (
-	ErrorCodeAlreadyExist ErrorCode = "value_already_exist"
-	ErrorCodeInvalidValue
-)
-
-type ErrorDetail struct {
-	Multiple bool
-	Errors   map[int]map[string][]string
-}
-
-func (ed *ErrorDetail) DetailsForRow(row int) (map[string][]string, error) {
-	if !ed.Multiple {
-		return nil, errors.New("error contains a single error, use Error()")
-	}
-
-	rowDetail, ok := ed.Errors[row]
-	if !ok {
-		return nil, nil
-	}
-
-	return rowDetail, nil
-}
-
-func (ed *ErrorDetail) Details() (map[string][]string, error) {
-	if ed.Multiple {
-		return nil, errors.New("error contains multiple errors, use ErrorForRow()")
-	}
-
-	return ed.Errors[0], nil
-}
+type ErrorDetail map[int]map[string][]string
 
 func (ed *ErrorDetail) UnmarshalJSON(data []byte) error {
 	// First attempt to unmarshal singular.
 	var singularErr map[string][]string
 	err := json.Unmarshal(data, &singularErr)
 	if err == nil {
-		ed.Errors = map[int]map[string][]string{
-			0: singularErr,
-		}
+		*ed = ErrorDetail{0: singularErr}
 		return nil
 	}
 
@@ -54,19 +20,15 @@ func (ed *ErrorDetail) UnmarshalJSON(data []byte) error {
 	var multipleErr map[int]map[string][]string
 	err = json.Unmarshal(data, &multipleErr)
 	if err == nil {
-		ed.Errors = multipleErr
-		ed.Multiple = true
+		*ed = ErrorDetail(multipleErr)
 		return nil
 	}
 
 	return err
 }
 
-func (ed *ErrorDetail) MarshalJSON() ([]byte, error) {
-	if ed.Multiple {
-		return json.Marshal(ed.Errors)
-	}
-	return json.Marshal(ed.Errors[0])
+func (ed ErrorDetail) MarshalJSON() ([]byte, error) {
+	return json.Marshal(map[int]map[string][]string(ed))
 }
 
 type Error struct {
@@ -76,7 +38,7 @@ type Error struct {
 	Message        string `json:"error"`
 	ErrorCode      string `json:"code"`
 
-	ErrorDetail *ErrorDetail `json:"error_details,omitempty"`
+	ErrorDetail ErrorDetail `json:"error_details,omitempty"`
 }
 
 func (e Error) Error() string {
@@ -90,10 +52,6 @@ func (e Error) Error() string {
 	}
 	msg, _ := json.Marshal(&err)
 	return string(msg)
-}
-
-func (e ErrorCode) Error() string {
-	return string(e)
 }
 
 func readError(r io.Reader) *Error {

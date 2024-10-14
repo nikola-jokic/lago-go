@@ -10,9 +10,11 @@ import (
 	"github.com/google/uuid"
 )
 
-type CreditNoteCreditStatus string
-type CreditNoteRefundStatus string
-type CreditNoteReason string
+type (
+	CreditNoteCreditStatus string
+	CreditNoteRefundStatus string
+	CreditNoteReason       string
+)
 
 const (
 	CreditNoteCreditStatusAvailable CreditNoteCreditStatus = "available"
@@ -241,7 +243,6 @@ func (c *Client) UpdateCreditNote(ctx context.Context, creditNoteUpdateInput *Cr
 func (c *Client) VoidCreditNote(ctx context.Context, creditNoteID string) (*CreditNote, *Error) {
 	u := c.url("credit_notes/"+creditNoteID+"/void", nil)
 	result, err := putWithoutBody[creditNoteResult](ctx, c, u)
-
 	if err != nil {
 		return nil, err
 	}

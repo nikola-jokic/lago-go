@@ -100,7 +100,6 @@ func (c *Client) GetBillableMetric(ctx context.Context, billableMetricCode strin
 }
 
 func (c *Client) ListBillableMetrics(ctx context.Context, billableMetricListInput *BillableMetricListInput) (*BillableMetricList, *Error) {
-
 	u := c.url("billable_metrics", billableMetricListInput.query())
 	return get[BillableMetricList](ctx, c, u)
 }
