@@ -67,7 +67,7 @@ func (c *Client) parseSignature(ctx context.Context, signature string) (*jwt.Tok
 		return nil, err
 	}
 
-	token, parseErr := jwt.Parse(signature, func(token *jwt.Token) (interface{}, error) {
+	token, parseErr := jwt.Parse(signature, func(token *jwt.Token) (any, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
 			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
 		}

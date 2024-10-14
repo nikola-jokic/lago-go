@@ -16,7 +16,7 @@ const (
 	HMac SignatureAlgo = "hmac"
 )
 
-type WebhookEndpointParams struct {
+type webhookEndpointParams struct {
 	WebhookEndpointInput *WebhookEndpointInput `json:"webhook_endpoint"`
 }
 
@@ -41,8 +41,11 @@ func (i *WebhookEndpointListInput) query() url.Values {
 	return v
 }
 
-type WebhookEndpointResult struct {
-	WebhookEndpoint  *WebhookEndpoint   `json:"webhook_endpoint,omitempty"`
+type webhookEndpointResult struct {
+	WebhookEndpoint *WebhookEndpoint `json:"webhook_endpoint,omitempty"`
+}
+
+type WebhookEndpointList struct {
 	WebhookEndpoints []*WebhookEndpoint `json:"webhook_endpoints,omitempty"`
 	Meta             Metadata           `json:"meta,omitempty"`
 }
@@ -57,7 +60,7 @@ type WebhookEndpoint struct {
 
 func (c *Client) GetWebhookEndpoint(ctx context.Context, webhookEndpointID string) (*WebhookEndpoint, *Error) {
 	u := c.url("webhook_endpoints/"+webhookEndpointID, nil)
-	result, err := get[WebhookEndpointResult](ctx, c, u)
+	result, err := get[webhookEndpointResult](ctx, c, u)
 	if err != nil {
 		return nil, err
 	}
@@ -65,15 +68,15 @@ func (c *Client) GetWebhookEndpoint(ctx context.Context, webhookEndpointID strin
 	return result.WebhookEndpoint, nil
 }
 
-func (c *Client) ListWebhookEndpoints(ctx context.Context, webhookEndpointListInput *WebhookEndpointListInput) (*WebhookEndpointResult, *Error) {
+func (c *Client) ListWebhookEndpoints(ctx context.Context, webhookEndpointListInput *WebhookEndpointListInput) (*WebhookEndpointList, *Error) {
 	u := c.url("webhook_endpoints", webhookEndpointListInput.query())
-	return get[WebhookEndpointResult](ctx, c, u)
+	return get[WebhookEndpointList](ctx, c, u)
 }
 
 func (c *Client) CreateWebhookEndpoint(ctx context.Context, webhookEndpointInput *WebhookEndpointInput) (*WebhookEndpoint, *Error) {
 	u := c.url("webhook_endpoints", nil)
 
-	result, err := post[WebhookEndpointParams, WebhookEndpointResult](ctx, c, u, &WebhookEndpointParams{WebhookEndpointInput: webhookEndpointInput})
+	result, err := post[webhookEndpointParams, webhookEndpointResult](ctx, c, u, &webhookEndpointParams{WebhookEndpointInput: webhookEndpointInput})
 	if err != nil {
 		return nil, err
 	}
@@ -83,7 +86,7 @@ func (c *Client) CreateWebhookEndpoint(ctx context.Context, webhookEndpointInput
 
 func (c *Client) UpdateWebhookEndpoint(ctx context.Context, webhookEndpointInput *WebhookEndpointInput, webhookEndpointID string) (*WebhookEndpoint, *Error) {
 	u := c.url("webhook_endpoints/"+webhookEndpointID, nil)
-	result, err := put[WebhookEndpointParams, WebhookEndpointResult](ctx, c, u, &WebhookEndpointParams{WebhookEndpointInput: webhookEndpointInput})
+	result, err := put[webhookEndpointParams, webhookEndpointResult](ctx, c, u, &webhookEndpointParams{WebhookEndpointInput: webhookEndpointInput})
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +96,7 @@ func (c *Client) UpdateWebhookEndpoint(ctx context.Context, webhookEndpointInput
 
 func (c *Client) DeleteWebhookEndpoint(ctx context.Context, webhookEndpointID string) (*WebhookEndpoint, *Error) {
 	u := c.url("webhook_endpoints/"+webhookEndpointID, nil)
-	result, err := delete[WebhookEndpointResult](ctx, c, u)
+	result, err := delete[webhookEndpointResult](ctx, c, u)
 	if err != nil {
 		return nil, err
 	}

@@ -28,11 +28,11 @@ type LifetimeUsageThreshold struct {
 	ReachedAt       *time.Time `json:"reached_at"`
 }
 
-type LifetimeUsageResult struct {
+type lifetimeUsageResult struct {
 	LifetimeUsage *LifetimeUsage `json:"lifetime_usage"`
 }
 
-type LifetimeUsageParams struct {
+type lifetimeUsageParams struct {
 	LifetimeUsage *LifetimeUsageInput `json:"lifetime_usage"`
 }
 
@@ -43,7 +43,7 @@ type LifetimeUsageInput struct {
 
 func (c *Client) GetLifetimeUsage(ctx context.Context, externalSubscriptionID string) (*LifetimeUsage, *Error) {
 	u := c.url("subscriptions/"+externalSubscriptionID+"/lifetime_usage", nil)
-	result, err := get[LifetimeUsageResult](ctx, c, u)
+	result, err := get[lifetimeUsageResult](ctx, c, u)
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +53,7 @@ func (c *Client) GetLifetimeUsage(ctx context.Context, externalSubscriptionID st
 
 func (c *Client) UpdateLifetimeUsage(ctx context.Context, lifetimeUsageInput *LifetimeUsageInput) (*LifetimeUsage, *Error) {
 	u := c.url("subscriptions/"+lifetimeUsageInput.ExternalSubscriptionID+"/lifetime_usage", nil)
-	result, err := put[LifetimeUsageInput, LifetimeUsageResult](ctx, c, u, lifetimeUsageInput)
+	result, err := put[lifetimeUsageParams, lifetimeUsageResult](ctx, c, u, &lifetimeUsageParams{LifetimeUsage: lifetimeUsageInput})
 	if err != nil {
 		return nil, err
 	}

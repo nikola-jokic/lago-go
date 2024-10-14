@@ -7,11 +7,11 @@ import (
 	"github.com/google/uuid"
 )
 
-type EventParams struct {
+type eventParams struct {
 	Event *EventInput `json:"event"`
 }
 
-type BatchEventParams struct {
+type batchEventParams struct {
 	Events *[]*EventInput `json:"events"`
 }
 
@@ -57,7 +57,7 @@ type Event struct {
 
 func (c *Client) CreateEvent(ctx context.Context, eventInput *EventInput) (*Event, *Error) {
 	u := c.url("events", nil)
-	result, err := post[EventParams, EventResult](ctx, c, u, &EventParams{Event: eventInput})
+	result, err := post[eventParams, EventResult](ctx, c, u, &eventParams{Event: eventInput})
 	if err != nil {
 		return nil, err
 	}
@@ -65,9 +65,9 @@ func (c *Client) CreateEvent(ctx context.Context, eventInput *EventInput) (*Even
 	return result.Event, nil
 }
 
-func (c *Client) EstimateEventFees(ctx context.Context, estimateInput EventEstimateFeesInput) (*FeeResult, *Error) {
+func (c *Client) EstimateEventFees(ctx context.Context, estimateInput EventEstimateFeesInput) (*feeResult, *Error) {
 	u := c.url("events/estimate_fees", nil)
-	return post[EventEstimateFeesParams, FeeResult](ctx, c, u, &EventEstimateFeesParams{Event: &estimateInput})
+	return post[EventEstimateFeesParams, feeResult](ctx, c, u, &EventEstimateFeesParams{Event: &estimateInput})
 }
 
 func (c *Client) GetEvent(ctx context.Context, eventID string) (*Event, *Error) {
@@ -82,7 +82,7 @@ func (c *Client) GetEvent(ctx context.Context, eventID string) (*Event, *Error) 
 
 func (c *Client) BatchEvents(ctx context.Context, batchInput *[]*EventInput) (*[]*Event, *Error) {
 	u := c.url("events/batch", nil)
-	result, err := post[BatchEventParams, BatchEventResult](ctx, c, u, &BatchEventParams{Events: batchInput})
+	result, err := post[batchEventParams, BatchEventResult](ctx, c, u, &batchEventParams{Events: batchInput})
 	if err != nil {
 		return nil, err
 	}

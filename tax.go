@@ -9,7 +9,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type TaxParams struct {
+type taxParams struct {
 	Tax *TaxInput `json:"tax"`
 }
 
@@ -42,8 +42,11 @@ func (i *TaxListInput) query() url.Values {
 	return q
 }
 
-type TaxResult struct {
-	Tax   *Tax     `json:"tax,omitempty"`
+type taxResult struct {
+	Tax *Tax `json:"tax,omitempty"`
+}
+
+type TaxList struct {
 	Taxes []*Tax   `json:"taxes,omitempty"`
 	Meta  Metadata `json:"meta,omitempty"`
 }
@@ -64,7 +67,7 @@ type Tax struct {
 
 func (c *Client) GetTax(ctx context.Context, taxCode string) (*Tax, *Error) {
 	u := c.url("taxes/"+taxCode, nil)
-	result, err := get[TaxResult](ctx, c, u)
+	result, err := get[taxResult](ctx, c, u)
 	if err != nil {
 		return nil, err
 	}
@@ -72,15 +75,15 @@ func (c *Client) GetTax(ctx context.Context, taxCode string) (*Tax, *Error) {
 	return result.Tax, nil
 }
 
-func (c *Client) ListTaxes(ctx context.Context, taxListInput *TaxListInput) (*TaxResult, *Error) {
+func (c *Client) ListTaxes(ctx context.Context, taxListInput *TaxListInput) (*TaxList, *Error) {
 	u := c.url("taxes", taxListInput.query())
-	return get[TaxResult](ctx, c, u)
+	return get[TaxList](ctx, c, u)
 }
 
 func (c *Client) CreateTax(ctx context.Context, taxInput *TaxInput) (*Tax, *Error) {
 	u := c.url("taxes", nil)
 
-	result, err := post[TaxParams, TaxResult](ctx, c, u, &TaxParams{Tax: taxInput})
+	result, err := post[taxParams, taxResult](ctx, c, u, &taxParams{Tax: taxInput})
 	if err != nil {
 		return nil, err
 	}
@@ -91,7 +94,7 @@ func (c *Client) CreateTax(ctx context.Context, taxInput *TaxInput) (*Tax, *Erro
 func (c *Client) UpdateTax(ctx context.Context, taxInput *TaxInput) (*Tax, *Error) {
 	u := c.url("taxes/"+taxInput.Code, nil)
 
-	result, err := put[TaxParams, TaxResult](ctx, c, u, &TaxParams{Tax: taxInput})
+	result, err := put[taxParams, taxResult](ctx, c, u, &taxParams{Tax: taxInput})
 	if err != nil {
 		return nil, err
 	}
@@ -102,7 +105,7 @@ func (c *Client) UpdateTax(ctx context.Context, taxInput *TaxInput) (*Tax, *Erro
 func (c *Client) DeleteTax(ctx context.Context, taxCode string) (*Tax, *Error) {
 	u := c.url("taxes/"+taxCode, nil)
 
-	result, err := delete[TaxResult](ctx, c, u)
+	result, err := delete[taxResult](ctx, c, u)
 	if err != nil {
 		return nil, err
 	}

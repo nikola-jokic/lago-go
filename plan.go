@@ -9,13 +9,16 @@ import (
 	"github.com/google/uuid"
 )
 
-type PlanResult struct {
-	Plan  *Plan    `json:"plan,omitempty"`
+type planResult struct {
+	Plan *Plan `json:"plan,omitempty"`
+}
+
+type PlanList struct {
 	Plans []*Plan  `json:"plans,omitempty"`
 	Meta  Metadata `json:"meta,omitempty"`
 }
 
-type PlanParams struct {
+type planParams struct {
 	Plan *PlanInput `json:"plan"`
 }
 
@@ -120,7 +123,7 @@ type Plan struct {
 
 func (c *Client) GetPlan(ctx context.Context, planCode string) (*Plan, *Error) {
 	u := c.url("plans/"+planCode, nil)
-	result, err := get[PlanResult](ctx, c, u)
+	result, err := get[planResult](ctx, c, u)
 	if err != nil {
 		return nil, err
 	}
@@ -128,14 +131,14 @@ func (c *Client) GetPlan(ctx context.Context, planCode string) (*Plan, *Error) {
 	return result.Plan, nil
 }
 
-func (c *Client) ListPlans(ctx context.Context, planListInput *PlanListInput) (*PlanResult, *Error) {
+func (c *Client) ListPlans(ctx context.Context, planListInput *PlanListInput) (*PlanList, *Error) {
 	u := c.url("plans", planListInput.query())
-	return get[PlanResult](ctx, c, u)
+	return get[PlanList](ctx, c, u)
 }
 
 func (c *Client) CreatePlan(ctx context.Context, planInput *PlanInput) (*Plan, *Error) {
 	u := c.url("plans", nil)
-	result, err := post[PlanParams, PlanResult](ctx, c, u, &PlanParams{Plan: planInput})
+	result, err := post[planParams, planResult](ctx, c, u, &planParams{Plan: planInput})
 	if err != nil {
 		return nil, err
 	}
@@ -145,7 +148,7 @@ func (c *Client) CreatePlan(ctx context.Context, planInput *PlanInput) (*Plan, *
 
 func (c *Client) UpdatePlan(ctx context.Context, planInput *PlanInput) (*Plan, *Error) {
 	u := c.url("plans/"+planInput.Code, nil)
-	result, err := put[PlanParams, PlanResult](ctx, c, u, &PlanParams{Plan: planInput})
+	result, err := put[planParams, planResult](ctx, c, u, &planParams{Plan: planInput})
 	if err != nil {
 		return nil, err
 	}
@@ -156,7 +159,7 @@ func (c *Client) UpdatePlan(ctx context.Context, planInput *PlanInput) (*Plan, *
 func (c *Client) DeletePlan(ctx context.Context, planCode string) (*Plan, *Error) {
 	u := c.url("plans/"+planCode, nil)
 
-	result, err := delete[PlanResult](ctx, c, u)
+	result, err := delete[planResult](ctx, c, u)
 	if err != nil {
 		return nil, err
 	}

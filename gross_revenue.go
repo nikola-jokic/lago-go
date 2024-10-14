@@ -30,8 +30,7 @@ func (i *GrossRevenueListInput) query() url.Values {
 	return q
 }
 
-type GrossRevenueResult struct {
-	GrossRevenue  *GrossRevenue   `json:"gross_revenue,omitempty"`
+type GrossRevenueList struct {
 	GrossRevenues []*GrossRevenue `json:"gross_revenues,omitempty"`
 }
 
@@ -42,7 +41,7 @@ type GrossRevenue struct {
 	InvoicesCount  int      `json:"invoices_count,omitempty"`
 }
 
-func (c *Client) ListGrossRevenues(ctx context.Context, GrossRevenueListInput *GrossRevenueListInput) (*GrossRevenueResult, *Error) {
+func (c *Client) ListGrossRevenues(ctx context.Context, GrossRevenueListInput *GrossRevenueListInput) (*GrossRevenueList, *Error) {
 	u := c.url("analytics/gross_revenue", GrossRevenueListInput.query())
-	return get[GrossRevenueResult](ctx, c, u)
+	return get[GrossRevenueList](ctx, c, u)
 }

@@ -27,8 +27,7 @@ func (i *InvoiceCollectionListInput) query() url.Values {
 	return q
 }
 
-type InvoiceCollectionResult struct {
-	InvoiceCollection  *InvoiceCollection   `json:"invoice_collection,omitempty"`
+type InvoiceCollectionList struct {
 	InvoiceCollections []*InvoiceCollection `json:"invoice_collections,omitempty"`
 }
 
@@ -40,7 +39,7 @@ type InvoiceCollection struct {
 	AmountCurrency Currency             `json:"currency,omitempty"`
 }
 
-func (c *Client) ListInvoiceCollections(ctx context.Context, InvoiceCollectionListInput *InvoiceCollectionListInput) (*InvoiceCollectionResult, *Error) {
+func (c *Client) ListInvoiceCollections(ctx context.Context, InvoiceCollectionListInput *InvoiceCollectionListInput) (*InvoiceCollectionList, *Error) {
 	u := c.url("analytics/invoice_collection", InvoiceCollectionListInput.query())
-	return get[InvoiceCollectionResult](ctx, c, u)
+	return get[InvoiceCollectionList](ctx, c, u)
 }
