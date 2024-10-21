@@ -174,6 +174,7 @@ type FeeAppliedTax struct {
 
 type Fee struct {
 	LagoID                 uuid.UUID `json:"lago_id,omitempty"`
+	LagoChargeID           uuid.UUID `json:"lago_charge_id,omitempty"`
 	LagoChargeFilterID     uuid.UUID `json:"lago_charge_filter_id,omitempty"`
 	LagoInvoiceID          uuid.UUID `json:"lago_invoice_id,omitempty"`
 	LagoTrueUpFeeID        uuid.UUID `json:"lago_true_up_fee_id,omitempty"`
