@@ -163,7 +163,7 @@ type Subscription struct {
 	TerminatedAt *time.Time `json:"terminated_at"`
 }
 
-func (c *Client) CreateSubscription(ctx context.Context, subscriptionInput *SubscriptionInput) (*Subscription, *Error) {
+func (c *Client) CreateSubscription(ctx context.Context, subscriptionInput *SubscriptionInput) (*Subscription, error) {
 	u := c.url("subscriptions", nil)
 	result, err := post[subscriptionParams, subscriptionResult](
 		ctx,
@@ -178,7 +178,7 @@ func (c *Client) CreateSubscription(ctx context.Context, subscriptionInput *Subs
 	return result.Subscription, nil
 }
 
-func (c *Client) TerminateSubscription(ctx context.Context, subscriptionTerminateInput *SubscriptionTerminateInput) (*Subscription, *Error) {
+func (c *Client) TerminateSubscription(ctx context.Context, subscriptionTerminateInput *SubscriptionTerminateInput) (*Subscription, error) {
 	u := c.url("subscriptions/"+subscriptionTerminateInput.ExternalID, subscriptionTerminateInput.query())
 	result, err := delete[subscriptionResult](ctx, c, u)
 	if err != nil {
@@ -188,7 +188,7 @@ func (c *Client) TerminateSubscription(ctx context.Context, subscriptionTerminat
 	return result.Subscription, nil
 }
 
-func (c *Client) GetSubscription(ctx context.Context, subscriptionExternalId string) (*Subscription, *Error) {
+func (c *Client) GetSubscription(ctx context.Context, subscriptionExternalId string) (*Subscription, error) {
 	u := c.url("subscriptions/"+subscriptionExternalId, nil)
 	result, err := get[subscriptionResult](ctx, c, u)
 	if err != nil {
@@ -198,12 +198,12 @@ func (c *Client) GetSubscription(ctx context.Context, subscriptionExternalId str
 	return result.Subscription, nil
 }
 
-func (c *Client) ListSubscriptions(ctx context.Context, subscriptionListInput *SubscriptionListInput) (*SubscriptionList, *Error) {
+func (c *Client) ListSubscriptions(ctx context.Context, subscriptionListInput *SubscriptionListInput) (*SubscriptionList, error) {
 	u := c.url("subscriptions", subscriptionListInput.query())
 	return get[SubscriptionList](ctx, c, u)
 }
 
-func (c *Client) UpdateSubscription(ctx context.Context, subscriptionInput *SubscriptionInput) (*Subscription, *Error) {
+func (c *Client) UpdateSubscription(ctx context.Context, subscriptionInput *SubscriptionInput) (*Subscription, error) {
 	u := c.url("subscriptions/"+subscriptionInput.ExternalID, nil)
 	result, err := put[subscriptionParams, subscriptionResult](
 		ctx,

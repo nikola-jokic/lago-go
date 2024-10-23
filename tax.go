@@ -65,7 +65,7 @@ type Tax struct {
 	CreatedAt             time.Time `json:"created_at,omitempty"`
 }
 
-func (c *Client) GetTax(ctx context.Context, taxCode string) (*Tax, *Error) {
+func (c *Client) GetTax(ctx context.Context, taxCode string) (*Tax, error) {
 	u := c.url("taxes/"+taxCode, nil)
 	result, err := get[taxResult](ctx, c, u)
 	if err != nil {
@@ -75,12 +75,12 @@ func (c *Client) GetTax(ctx context.Context, taxCode string) (*Tax, *Error) {
 	return result.Tax, nil
 }
 
-func (c *Client) ListTaxes(ctx context.Context, taxListInput *TaxListInput) (*TaxList, *Error) {
+func (c *Client) ListTaxes(ctx context.Context, taxListInput *TaxListInput) (*TaxList, error) {
 	u := c.url("taxes", taxListInput.query())
 	return get[TaxList](ctx, c, u)
 }
 
-func (c *Client) CreateTax(ctx context.Context, taxInput *TaxInput) (*Tax, *Error) {
+func (c *Client) CreateTax(ctx context.Context, taxInput *TaxInput) (*Tax, error) {
 	u := c.url("taxes", nil)
 
 	result, err := post[taxParams, taxResult](
@@ -96,7 +96,7 @@ func (c *Client) CreateTax(ctx context.Context, taxInput *TaxInput) (*Tax, *Erro
 	return result.Tax, nil
 }
 
-func (c *Client) UpdateTax(ctx context.Context, taxInput *TaxInput) (*Tax, *Error) {
+func (c *Client) UpdateTax(ctx context.Context, taxInput *TaxInput) (*Tax, error) {
 	u := c.url("taxes/"+taxInput.Code, nil)
 
 	result, err := put[taxParams, taxResult](
@@ -112,7 +112,7 @@ func (c *Client) UpdateTax(ctx context.Context, taxInput *TaxInput) (*Tax, *Erro
 	return result.Tax, nil
 }
 
-func (c *Client) DeleteTax(ctx context.Context, taxCode string) (*Tax, *Error) {
+func (c *Client) DeleteTax(ctx context.Context, taxCode string) (*Tax, error) {
 	u := c.url("taxes/"+taxCode, nil)
 
 	result, err := delete[taxResult](ctx, c, u)

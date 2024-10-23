@@ -41,7 +41,7 @@ type GrossRevenue struct {
 	InvoicesCount  int      `json:"invoices_count,omitempty"`
 }
 
-func (c *Client) ListGrossRevenues(ctx context.Context, GrossRevenueListInput *GrossRevenueListInput) (*GrossRevenueList, *Error) {
+func (c *Client) ListGrossRevenues(ctx context.Context, GrossRevenueListInput *GrossRevenueListInput) (*GrossRevenueList, error) {
 	u := c.url("analytics/gross_revenue", GrossRevenueListInput.query())
 	return get[GrossRevenueList](ctx, c, u)
 }

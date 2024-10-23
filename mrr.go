@@ -35,7 +35,7 @@ type Mrr struct {
 	AmountCurrency Currency `json:"currency,omitempty"`
 }
 
-func (c *Client) ListMrrs(ctx context.Context, MrrListInput *MrrListInput) (*MrrList, *Error) {
+func (c *Client) ListMrrs(ctx context.Context, MrrListInput *MrrListInput) (*MrrList, error) {
 	u := c.url("analytics/mrr", MrrListInput.query())
 	return get[MrrList](ctx, c, u)
 }

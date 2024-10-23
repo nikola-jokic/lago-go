@@ -2,6 +2,7 @@ package lago
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 )
 
@@ -31,9 +32,7 @@ func (ed ErrorDetail) MarshalJSON() ([]byte, error) {
 	return json.Marshal(map[int]map[string][]string(ed))
 }
 
-type Error struct {
-	Err error `json:"-"`
-
+type HTTPError struct {
 	HTTPStatusCode int    `json:"status"`
 	Message        string `json:"error"`
 	ErrorCode      string `json:"code"`
@@ -41,23 +40,15 @@ type Error struct {
 	ErrorDetail ErrorDetail `json:"error_details,omitempty"`
 }
 
-func (e Error) Error() string {
-	type alias struct {
-		Error
-		Err string `json:"err,omitempty"`
-	}
-	err := alias{Error: e}
-	if e.Err != nil {
-		err.Err = e.Err.Error()
-	}
-	msg, _ := json.Marshal(&err)
+func (e HTTPError) Error() string {
+	msg, _ := json.Marshal(&e)
 	return string(msg)
 }
 
-func readError(r io.Reader) *Error {
-	var e Error
+func readError(r io.Reader) error {
+	var e HTTPError
 	if err := json.NewDecoder(r).Decode(&e); err != nil {
-		return &Error{Err: err}
+		return fmt.Errorf("failed to decode error response: %w", err)
 	}
 	return &e
 }

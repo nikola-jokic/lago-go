@@ -107,7 +107,7 @@ type WalletTransaction struct {
 	Metadata                         []*WalletTransactionMetadata `json:"metadata,omitempty"`
 }
 
-func (c *Client) CreateWalletTransaction(ctx context.Context, walletTransactionInput *WalletTransactionInput) (*WalletTransactionList, *Error) {
+func (c *Client) CreateWalletTransaction(ctx context.Context, walletTransactionInput *WalletTransactionInput) (*WalletTransactionList, error) {
 	u := c.url("wallet_transactions", nil)
 	return post[walletTransactionParams, WalletTransactionList](
 		ctx,
@@ -117,7 +117,7 @@ func (c *Client) CreateWalletTransaction(ctx context.Context, walletTransactionI
 	)
 }
 
-func (c *Client) ListWalletTransactions(ctx context.Context, walletTransactionListInput *WalletTransactionListInput) (*WalletTransactionList, *Error) {
+func (c *Client) ListWalletTransactions(ctx context.Context, walletTransactionListInput *WalletTransactionListInput) (*WalletTransactionList, error) {
 	u := c.url("wallets/"+walletTransactionListInput.WalletID+"/wallet_transactions", walletTransactionListInput.query())
 	return get[WalletTransactionList](ctx, c, u)
 }

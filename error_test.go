@@ -2,13 +2,11 @@ package lago
 
 import (
 	"encoding/json"
-	"errors"
 	"testing"
 )
 
 func TestErrorErr(t *testing.T) {
-	var hasErr error = Error{
-		Err:            errors.New("type assertion failed"),
+	var hasErr error = HTTPError{
 		HTTPStatusCode: 422,
 		Message:        "Type assertion failed",
 	}
@@ -16,7 +14,7 @@ func TestErrorErr(t *testing.T) {
 }
 
 func TestErrorNoErr(t *testing.T) {
-	var noErr error = Error{
+	var noErr error = HTTPError{
 		HTTPStatusCode: 500,
 		Message:        "500",
 	}
@@ -27,7 +25,7 @@ func TestErrorDetails(t *testing.T) {
 	tests := []struct {
 		name  string
 		input string
-		want  *Error
+		want  error
 	}{
 		{
 			name: "Single detail",
@@ -41,7 +39,7 @@ func TestErrorDetails(t *testing.T) {
     ]
   }
 }`,
-			want: &Error{
+			want: &HTTPError{
 				HTTPStatusCode: 422,
 				Message:        "Unprocessable Entity",
 				ErrorCode:      "validation_errors",
@@ -78,7 +76,7 @@ func TestErrorDetails(t *testing.T) {
     }
   }
 }`,
-			want: &Error{
+			want: &HTTPError{
 				HTTPStatusCode: 422,
 				Message:        "Unprocessable Entity",
 				ErrorCode:      "validation_errors",
@@ -104,7 +102,7 @@ func TestErrorDetails(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			errObj := &Error{}
+			errObj := &HTTPError{}
 			err := json.Unmarshal([]byte(tt.input), errObj)
 			if err != nil {
 				t.Errorf("got error %s", err.Error())

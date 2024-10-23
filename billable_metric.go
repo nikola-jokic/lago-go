@@ -88,7 +88,7 @@ type BillableMetric struct {
 	PlansCount               int                     `json:"plans_count,omitempty"`
 }
 
-func (c *Client) GetBillableMetric(ctx context.Context, billableMetricCode string) (*BillableMetric, *Error) {
+func (c *Client) GetBillableMetric(ctx context.Context, billableMetricCode string) (*BillableMetric, error) {
 	u := c.url("billable_metrics/"+billableMetricCode, nil)
 
 	result, err := get[billableMetricResult](ctx, c, u)
@@ -99,12 +99,12 @@ func (c *Client) GetBillableMetric(ctx context.Context, billableMetricCode strin
 	return result.BillableMetric, nil
 }
 
-func (c *Client) ListBillableMetrics(ctx context.Context, billableMetricListInput *BillableMetricListInput) (*BillableMetricList, *Error) {
+func (c *Client) ListBillableMetrics(ctx context.Context, billableMetricListInput *BillableMetricListInput) (*BillableMetricList, error) {
 	u := c.url("billable_metrics", billableMetricListInput.query())
 	return get[BillableMetricList](ctx, c, u)
 }
 
-func (c *Client) CreateBillableMetric(ctx context.Context, billableMetricInput *BillableMetricInput) (*BillableMetric, *Error) {
+func (c *Client) CreateBillableMetric(ctx context.Context, billableMetricInput *BillableMetricInput) (*BillableMetric, error) {
 	u := c.url("billable_metrics", nil)
 
 	result, err := post[billableMetricParams, billableMetricResult](
@@ -120,7 +120,7 @@ func (c *Client) CreateBillableMetric(ctx context.Context, billableMetricInput *
 	return result.BillableMetric, nil
 }
 
-func (c *Client) UpdateBillableMetric(ctx context.Context, billableMetricInput *BillableMetricInput) (*BillableMetric, *Error) {
+func (c *Client) UpdateBillableMetric(ctx context.Context, billableMetricInput *BillableMetricInput) (*BillableMetric, error) {
 	u := c.url("billable_metrics/"+billableMetricInput.Code, nil)
 
 	result, err := put[billableMetricParams, billableMetricResult](
@@ -136,7 +136,7 @@ func (c *Client) UpdateBillableMetric(ctx context.Context, billableMetricInput *
 	return result.BillableMetric, nil
 }
 
-func (c *Client) DeleteBillableMetric(ctx context.Context, billableMetricCode string) (*BillableMetric, *Error) {
+func (c *Client) DeleteBillableMetric(ctx context.Context, billableMetricCode string) (*BillableMetric, error) {
 	u := c.url("billable_metrics/"+billableMetricCode, nil)
 
 	result, err := delete[billableMetricResult](

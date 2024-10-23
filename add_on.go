@@ -65,7 +65,7 @@ type AddOn struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 }
 
-func (c *Client) GetAddOn(ctx context.Context, addOnCode string) (*AddOn, *Error) {
+func (c *Client) GetAddOn(ctx context.Context, addOnCode string) (*AddOn, error) {
 	u := c.url("add_ons/"+addOnCode, nil)
 	result, err := get[addOnResult](ctx, c, u)
 	if err != nil {
@@ -74,13 +74,13 @@ func (c *Client) GetAddOn(ctx context.Context, addOnCode string) (*AddOn, *Error
 	return result.AddOn, nil
 }
 
-func (c *Client) ListAddOns(ctx context.Context, addOnListInput *AddOnListInput) (*AddOnList, *Error) {
+func (c *Client) ListAddOns(ctx context.Context, addOnListInput *AddOnListInput) (*AddOnList, error) {
 	u := c.url("add_ons", addOnListInput.query())
 
 	return get[AddOnList](ctx, c, u)
 }
 
-func (c *Client) CreateAddOn(ctx context.Context, addOnInput *AddOnInput) (*AddOn, *Error) {
+func (c *Client) CreateAddOn(ctx context.Context, addOnInput *AddOnInput) (*AddOn, error) {
 	u := c.url("add_ons", nil)
 	result, err := post[addOnParams, addOnResult](
 		ctx,
@@ -95,7 +95,7 @@ func (c *Client) CreateAddOn(ctx context.Context, addOnInput *AddOnInput) (*AddO
 	return result.AddOn, nil
 }
 
-func (c *Client) UpdateAddOn(ctx context.Context, addOnInput *AddOnInput) (*AddOn, *Error) {
+func (c *Client) UpdateAddOn(ctx context.Context, addOnInput *AddOnInput) (*AddOn, error) {
 	u := c.url("add_ons/"+addOnInput.Code, nil)
 
 	result, err := put[addOnParams, addOnResult](
@@ -111,7 +111,7 @@ func (c *Client) UpdateAddOn(ctx context.Context, addOnInput *AddOnInput) (*AddO
 	return result.AddOn, nil
 }
 
-func (c *Client) DeleteAddOn(ctx context.Context, addOnCode string) (*AddOn, *Error) {
+func (c *Client) DeleteAddOn(ctx context.Context, addOnCode string) (*AddOn, error) {
 	u := c.url("add_ons/"+addOnCode, nil)
 	result, err := delete[addOnResult](ctx, c, u)
 	if err != nil {

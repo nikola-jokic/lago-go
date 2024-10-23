@@ -41,7 +41,7 @@ type LifetimeUsageInput struct {
 	ExternalHistoricalUsageAmountCents int    `json:"external_historical_usage_amount_cents"`
 }
 
-func (c *Client) GetLifetimeUsage(ctx context.Context, externalSubscriptionID string) (*LifetimeUsage, *Error) {
+func (c *Client) GetLifetimeUsage(ctx context.Context, externalSubscriptionID string) (*LifetimeUsage, error) {
 	u := c.url("subscriptions/"+externalSubscriptionID+"/lifetime_usage", nil)
 	result, err := get[lifetimeUsageResult](ctx, c, u)
 	if err != nil {
@@ -51,7 +51,7 @@ func (c *Client) GetLifetimeUsage(ctx context.Context, externalSubscriptionID st
 	return result.LifetimeUsage, nil
 }
 
-func (c *Client) UpdateLifetimeUsage(ctx context.Context, lifetimeUsageInput *LifetimeUsageInput) (*LifetimeUsage, *Error) {
+func (c *Client) UpdateLifetimeUsage(ctx context.Context, lifetimeUsageInput *LifetimeUsageInput) (*LifetimeUsage, error) {
 	u := c.url("subscriptions/"+lifetimeUsageInput.ExternalSubscriptionID+"/lifetime_usage", nil)
 	result, err := put[lifetimeUsageParams, lifetimeUsageResult](
 		ctx,

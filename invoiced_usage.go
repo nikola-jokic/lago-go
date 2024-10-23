@@ -36,7 +36,7 @@ type InvoicedUsage struct {
 	AmountCurrency Currency `json:"currency,omitempty"`
 }
 
-func (c *Client) ListInvoiceUsages(ctx context.Context, invoicedUsageListInput *InvoicedUsageListInput) (*InvoicedUsageList, *Error) {
+func (c *Client) ListInvoiceUsages(ctx context.Context, invoicedUsageListInput *InvoicedUsageListInput) (*InvoicedUsageList, error) {
 	u := c.url("analytics/invoiced_usage", invoicedUsageListInput.query())
 	return get[InvoicedUsageList](ctx, c, u)
 }

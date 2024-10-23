@@ -58,7 +58,7 @@ type WebhookEndpoint struct {
 	CreatedAt          time.Time     `json:"created_at,omitempty"`
 }
 
-func (c *Client) GetWebhookEndpoint(ctx context.Context, webhookEndpointID string) (*WebhookEndpoint, *Error) {
+func (c *Client) GetWebhookEndpoint(ctx context.Context, webhookEndpointID string) (*WebhookEndpoint, error) {
 	u := c.url("webhook_endpoints/"+webhookEndpointID, nil)
 	result, err := get[webhookEndpointResult](ctx, c, u)
 	if err != nil {
@@ -68,12 +68,12 @@ func (c *Client) GetWebhookEndpoint(ctx context.Context, webhookEndpointID strin
 	return result.WebhookEndpoint, nil
 }
 
-func (c *Client) ListWebhookEndpoints(ctx context.Context, webhookEndpointListInput *WebhookEndpointListInput) (*WebhookEndpointList, *Error) {
+func (c *Client) ListWebhookEndpoints(ctx context.Context, webhookEndpointListInput *WebhookEndpointListInput) (*WebhookEndpointList, error) {
 	u := c.url("webhook_endpoints", webhookEndpointListInput.query())
 	return get[WebhookEndpointList](ctx, c, u)
 }
 
-func (c *Client) CreateWebhookEndpoint(ctx context.Context, webhookEndpointInput *WebhookEndpointInput) (*WebhookEndpoint, *Error) {
+func (c *Client) CreateWebhookEndpoint(ctx context.Context, webhookEndpointInput *WebhookEndpointInput) (*WebhookEndpoint, error) {
 	u := c.url("webhook_endpoints", nil)
 
 	result, err := post[webhookEndpointParams, webhookEndpointResult](
@@ -89,7 +89,7 @@ func (c *Client) CreateWebhookEndpoint(ctx context.Context, webhookEndpointInput
 	return result.WebhookEndpoint, nil
 }
 
-func (c *Client) UpdateWebhookEndpoint(ctx context.Context, webhookEndpointInput *WebhookEndpointInput, webhookEndpointID string) (*WebhookEndpoint, *Error) {
+func (c *Client) UpdateWebhookEndpoint(ctx context.Context, webhookEndpointInput *WebhookEndpointInput, webhookEndpointID string) (*WebhookEndpoint, error) {
 	u := c.url("webhook_endpoints/"+webhookEndpointID, nil)
 	result, err := put[webhookEndpointParams, webhookEndpointResult](
 		ctx,
@@ -104,7 +104,7 @@ func (c *Client) UpdateWebhookEndpoint(ctx context.Context, webhookEndpointInput
 	return result.WebhookEndpoint, nil
 }
 
-func (c *Client) DeleteWebhookEndpoint(ctx context.Context, webhookEndpointID string) (*WebhookEndpoint, *Error) {
+func (c *Client) DeleteWebhookEndpoint(ctx context.Context, webhookEndpointID string) (*WebhookEndpoint, error) {
 	u := c.url("webhook_endpoints/"+webhookEndpointID, nil)
 	result, err := delete[webhookEndpointResult](ctx, c, u)
 	if err != nil {

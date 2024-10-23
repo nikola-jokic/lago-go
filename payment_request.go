@@ -64,12 +64,12 @@ type PaymentRequestInput struct {
 	LagoInvoiceIds     []string `json:"lago_invoice_ids,omitempty"`
 }
 
-func (c *Client) ListPaymentRequests(ctx context.Context, paymentRequestListInput *PaymentRequestListInput) (*PaymentRequestList, *Error) {
+func (c *Client) ListPaymentRequests(ctx context.Context, paymentRequestListInput *PaymentRequestListInput) (*PaymentRequestList, error) {
 	u := c.url("payment_requests", paymentRequestListInput.query())
 	return get[PaymentRequestList](ctx, c, u)
 }
 
-func (c *Client) CreatePaymentRequest(ctx context.Context, paymentRequestInput *PaymentRequestInput) (*PaymentRequest, *Error) {
+func (c *Client) CreatePaymentRequest(ctx context.Context, paymentRequestInput *PaymentRequestInput) (*PaymentRequest, error) {
 	u := c.url("payment_requests", nil)
 	result, err := post[paymentRequestParams, paymentRequestResult](
 		ctx,

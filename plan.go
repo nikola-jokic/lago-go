@@ -121,7 +121,7 @@ type Plan struct {
 	UsageThresholds []*UsageThreshold `json:"usage_thresholds,omitempty"`
 }
 
-func (c *Client) GetPlan(ctx context.Context, planCode string) (*Plan, *Error) {
+func (c *Client) GetPlan(ctx context.Context, planCode string) (*Plan, error) {
 	u := c.url("plans/"+planCode, nil)
 	result, err := get[planResult](ctx, c, u)
 	if err != nil {
@@ -131,12 +131,12 @@ func (c *Client) GetPlan(ctx context.Context, planCode string) (*Plan, *Error) {
 	return result.Plan, nil
 }
 
-func (c *Client) ListPlans(ctx context.Context, planListInput *PlanListInput) (*PlanList, *Error) {
+func (c *Client) ListPlans(ctx context.Context, planListInput *PlanListInput) (*PlanList, error) {
 	u := c.url("plans", planListInput.query())
 	return get[PlanList](ctx, c, u)
 }
 
-func (c *Client) CreatePlan(ctx context.Context, planInput *PlanInput) (*Plan, *Error) {
+func (c *Client) CreatePlan(ctx context.Context, planInput *PlanInput) (*Plan, error) {
 	u := c.url("plans", nil)
 	result, err := post[planParams, planResult](
 		ctx,
@@ -151,7 +151,7 @@ func (c *Client) CreatePlan(ctx context.Context, planInput *PlanInput) (*Plan, *
 	return result.Plan, nil
 }
 
-func (c *Client) UpdatePlan(ctx context.Context, planInput *PlanInput) (*Plan, *Error) {
+func (c *Client) UpdatePlan(ctx context.Context, planInput *PlanInput) (*Plan, error) {
 	u := c.url("plans/"+planInput.Code, nil)
 	result, err := put[planParams, planResult](
 		ctx,
@@ -166,7 +166,7 @@ func (c *Client) UpdatePlan(ctx context.Context, planInput *PlanInput) (*Plan, *
 	return result.Plan, nil
 }
 
-func (c *Client) DeletePlan(ctx context.Context, planCode string) (*Plan, *Error) {
+func (c *Client) DeletePlan(ctx context.Context, planCode string) (*Plan, error) {
 	u := c.url("plans/"+planCode, nil)
 
 	result, err := delete[planResult](ctx, c, u)
