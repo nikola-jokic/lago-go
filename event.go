@@ -70,13 +70,13 @@ func (c *Client) CreateEvent(ctx context.Context, eventInput *EventInput) (*Even
 	return result.Event, nil
 }
 
-func (c *Client) EstimateEventFees(ctx context.Context, estimateInput EventEstimateFeesInput) (*feeResult, *Error) {
+func (c *Client) EstimateEventFees(ctx context.Context, estimateInput *EventEstimateFeesInput) (*feeResult, *Error) {
 	u := c.url("events/estimate_fees", nil)
 	return post[eventEstimateFeesParams, feeResult](
 		ctx,
 		c,
 		u,
-		&eventEstimateFeesParams{Event: &estimateInput},
+		&eventEstimateFeesParams{Event: estimateInput},
 	)
 }
 
