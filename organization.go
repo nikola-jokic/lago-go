@@ -87,7 +87,7 @@ type Organization struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 }
 
-func (c *Client) UpdateOrganization(ctx context.Context, organizationInput *OrganizationInput) (*Organization, *Error) {
+func (c *Client) UpdateOrganization(ctx context.Context, organizationInput *OrganizationInput) (*Organization, error) {
 	u := c.url("organizations", nil)
 	result, err := put[organizationParams, OrganizationResult](
 		ctx,

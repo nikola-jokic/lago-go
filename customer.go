@@ -300,7 +300,7 @@ type Customer struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 }
 
-func (c *Client) CreateCustomer(ctx context.Context, customerInput *CustomerInput) (*Customer, *Error) {
+func (c *Client) CreateCustomer(ctx context.Context, customerInput *CustomerInput) (*Customer, error) {
 	u := c.url("customers", nil)
 	result, err := post[customerParams, customerResult](
 		ctx,
@@ -318,11 +318,11 @@ func (c *Client) CreateCustomer(ctx context.Context, customerInput *CustomerInpu
 // UpdateCustomer is an alias for CreateCustomer
 // If customer does not exist, it will be created
 // If customer exists, it will be updated
-func (c *Client) UpdateCustomer(ctx context.Context, customerInput *CustomerInput) (*Customer, *Error) {
+func (c *Client) UpdateCustomer(ctx context.Context, customerInput *CustomerInput) (*Customer, error) {
 	return c.CreateCustomer(ctx, customerInput)
 }
 
-func (c *Client) GetCustomersCurrentUsage(ctx context.Context, externalCustomerID string, customerUsageInput *CustomerUsageInput) (*CustomerUsage, *Error) {
+func (c *Client) GetCustomersCurrentUsage(ctx context.Context, externalCustomerID string, customerUsageInput *CustomerUsageInput) (*CustomerUsage, error) {
 	u := c.url("customers/"+externalCustomerID+"/current_usage", customerUsageInput.query())
 
 	result, err := get[CustomerUsageResult](ctx, c, u)
@@ -333,13 +333,13 @@ func (c *Client) GetCustomersCurrentUsage(ctx context.Context, externalCustomerI
 	return result.CustomerUsage, nil
 }
 
-func (c *Client) ListCustomersPastUsage(ctx context.Context, externalCustomerID string, customerPastUsageInput *CustomerPastUsageInput) (*CustomerPastUsageList, *Error) {
+func (c *Client) ListCustomersPastUsage(ctx context.Context, externalCustomerID string, customerPastUsageInput *CustomerPastUsageInput) (*CustomerPastUsageList, error) {
 	u := c.url("customers/"+externalCustomerID+"/past_usage", customerPastUsageInput.query())
 
 	return get[CustomerPastUsageList](ctx, c, u)
 }
 
-func (c *Client) GetCustomersPortalURL(ctx context.Context, externalCustomerID string) (*CustomerPortalURL, *Error) {
+func (c *Client) GetCustomersPortalURL(ctx context.Context, externalCustomerID string) (*CustomerPortalURL, error) {
 	u := c.url("customers/"+externalCustomerID+"/portal_url", nil)
 	result, err := get[CustomerPortalURLResult](ctx, c, u)
 	if err != nil {
@@ -349,7 +349,7 @@ func (c *Client) GetCustomersPortalURL(ctx context.Context, externalCustomerID s
 	return result.CustomerPortalURL, nil
 }
 
-func (c *Client) GetCustomersCheckoutURL(ctx context.Context, externalCustomerID string) (*CustomerCheckoutURL, *Error) {
+func (c *Client) GetCustomersCheckoutURL(ctx context.Context, externalCustomerID string) (*CustomerCheckoutURL, error) {
 	u := c.url("customers/"+externalCustomerID+"/checkout_url", nil)
 	result, err := get[CustomerCheckoutURLResult](ctx, c, u)
 	if err != nil {
@@ -359,7 +359,7 @@ func (c *Client) GetCustomersCheckoutURL(ctx context.Context, externalCustomerID
 	return result.CustomerCheckoutURL, nil
 }
 
-func (c *Client) DeleteCustomer(ctx context.Context, externalCustomerID string) (*Customer, *Error) {
+func (c *Client) DeleteCustomer(ctx context.Context, externalCustomerID string) (*Customer, error) {
 	u := c.url("customers/"+externalCustomerID, nil)
 	result, err := delete[customerResult](ctx, c, u)
 	if err != nil {
@@ -369,7 +369,7 @@ func (c *Client) DeleteCustomer(ctx context.Context, externalCustomerID string) 
 	return result.Customer, nil
 }
 
-func (c *Client) GetCustomer(ctx context.Context, externalCustomerID string) (*Customer, *Error) {
+func (c *Client) GetCustomer(ctx context.Context, externalCustomerID string) (*Customer, error) {
 	u := c.url("customers/"+externalCustomerID, nil)
 	result, err := get[customerResult](ctx, c, u)
 	if err != nil {
@@ -379,7 +379,7 @@ func (c *Client) GetCustomer(ctx context.Context, externalCustomerID string) (*C
 	return result.Customer, nil
 }
 
-func (c *Client) ListCustomers(ctx context.Context, customerListInput *CustomerListInput) (*CustomerList, *Error) {
+func (c *Client) ListCustomers(ctx context.Context, customerListInput *CustomerListInput) (*CustomerList, error) {
 	u := c.url("customers", customerListInput.query())
 	return get[CustomerList](ctx, c, u)
 }

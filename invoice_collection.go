@@ -39,7 +39,7 @@ type InvoiceCollection struct {
 	AmountCurrency Currency             `json:"currency,omitempty"`
 }
 
-func (c *Client) ListInvoiceCollections(ctx context.Context, invoiceCollectionListInput *InvoiceCollectionListInput) (*InvoiceCollectionList, *Error) {
+func (c *Client) ListInvoiceCollections(ctx context.Context, invoiceCollectionListInput *InvoiceCollectionListInput) (*InvoiceCollectionList, error) {
 	u := c.url("analytics/invoice_collection", invoiceCollectionListInput.query())
 	return get[InvoiceCollectionList](ctx, c, u)
 }

@@ -213,7 +213,7 @@ type Fee struct {
 	AppliedTaxes []*FeeAppliedTax `json:"applied_taxes,omitempty"`
 }
 
-func (c *Client) GetFee(ctx context.Context, feeID string) (*Fee, *Error) {
+func (c *Client) GetFee(ctx context.Context, feeID string) (*Fee, error) {
 	u := c.url("fees/"+feeID, nil)
 	result, err := get[feeResult](ctx, c, u)
 	if err != nil {
@@ -223,7 +223,7 @@ func (c *Client) GetFee(ctx context.Context, feeID string) (*Fee, *Error) {
 	return result.Fee, nil
 }
 
-func (c *Client) UpdateFee(ctx context.Context, feeInput *FeeUpdateInput) (*Fee, *Error) {
+func (c *Client) UpdateFee(ctx context.Context, feeInput *FeeUpdateInput) (*Fee, error) {
 	u := c.url("fees/"+feeInput.LagoID.String(), nil)
 	result, err := put[feeUpdateParams, feeResult](
 		ctx,
@@ -238,12 +238,12 @@ func (c *Client) UpdateFee(ctx context.Context, feeInput *FeeUpdateInput) (*Fee,
 	return result.Fee, nil
 }
 
-func (c *Client) ListFees(ctx context.Context, feeListInput *FeeListInput) (*FeeList, *Error) {
+func (c *Client) ListFees(ctx context.Context, feeListInput *FeeListInput) (*FeeList, error) {
 	u := c.url("fees", feeListInput.query())
 	return get[FeeList](ctx, c, u)
 }
 
-func (c *Client) DeleteFee(ctx context.Context, feeID string) (*Fee, *Error) {
+func (c *Client) DeleteFee(ctx context.Context, feeID string) (*Fee, error) {
 	u := c.url("fees/"+feeID, nil)
 	result, err := delete[feeResult](ctx, c, u)
 	if err != nil {

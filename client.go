@@ -49,7 +49,7 @@ func New(cfg Config) (*Client, error) {
 	}, nil
 }
 
-func get[R any](ctx context.Context, client *Client, path string) (*R, *Error) {
+func get[R any](ctx context.Context, client *Client, path string) (*R, error) {
 	req, err := http.NewRequestWithContext(
 		ctx,
 		http.MethodGet,
@@ -57,7 +57,7 @@ func get[R any](ctx context.Context, client *Client, path string) (*R, *Error) {
 		nil,
 	)
 	if err != nil {
-		return nil, &Error{Err: err}
+		return nil, err
 	}
 
 	req.Header.Set("Accept", "application/json")
@@ -66,7 +66,7 @@ func get[R any](ctx context.Context, client *Client, path string) (*R, *Error) {
 
 	res, err := client.client.Do(req)
 	if err != nil {
-		return nil, &Error{Err: err}
+		return nil, err
 	}
 	defer res.Body.Close()
 
@@ -76,13 +76,13 @@ func get[R any](ctx context.Context, client *Client, path string) (*R, *Error) {
 
 	var result R
 	if err = json.NewDecoder(res.Body).Decode(&result); err != nil {
-		return nil, &Error{Err: err}
+		return nil, err
 	}
 
 	return &result, nil
 }
 
-func delete[R any](ctx context.Context, client *Client, path string) (*R, *Error) {
+func delete[R any](ctx context.Context, client *Client, path string) (*R, error) {
 	req, err := http.NewRequestWithContext(
 		ctx,
 		http.MethodDelete,
@@ -90,7 +90,7 @@ func delete[R any](ctx context.Context, client *Client, path string) (*R, *Error
 		nil,
 	)
 	if err != nil {
-		return nil, &Error{Err: err}
+		return nil, err
 	}
 
 	req.Header.Set("Accept", "application/json")
@@ -99,7 +99,7 @@ func delete[R any](ctx context.Context, client *Client, path string) (*R, *Error
 
 	res, err := client.client.Do(req)
 	if err != nil {
-		return nil, &Error{Err: err}
+		return nil, err
 	}
 	defer res.Body.Close()
 
@@ -109,16 +109,16 @@ func delete[R any](ctx context.Context, client *Client, path string) (*R, *Error
 
 	var result R
 	if err = json.NewDecoder(res.Body).Decode(&result); err != nil {
-		return nil, &Error{Err: err}
+		return nil, err
 	}
 
 	return &result, nil
 }
 
-func post[B, R any](ctx context.Context, client *Client, path string, body *B) (*R, *Error) {
+func post[B, R any](ctx context.Context, client *Client, path string, body *B) (*R, error) {
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(body); err != nil {
-		return nil, &Error{Err: err}
+		return nil, err
 	}
 
 	req, err := http.NewRequestWithContext(
@@ -128,7 +128,7 @@ func post[B, R any](ctx context.Context, client *Client, path string, body *B) (
 		&buf,
 	)
 	if err != nil {
-		return nil, &Error{Err: err}
+		return nil, err
 	}
 
 	req.Header.Set("Accept", "application/json")
@@ -138,7 +138,7 @@ func post[B, R any](ctx context.Context, client *Client, path string, body *B) (
 
 	res, err := client.client.Do(req)
 	if err != nil {
-		return nil, &Error{Err: err}
+		return nil, err
 	}
 	defer res.Body.Close()
 
@@ -148,13 +148,13 @@ func post[B, R any](ctx context.Context, client *Client, path string, body *B) (
 
 	var result R
 	if err = json.NewDecoder(res.Body).Decode(&result); err != nil {
-		return nil, &Error{Err: err}
+		return nil, err
 	}
 
 	return &result, nil
 }
 
-func postWithoutBody[R any](ctx context.Context, client *Client, path string) (*R, *Error) {
+func postWithoutBody[R any](ctx context.Context, client *Client, path string) (*R, error) {
 	req, err := http.NewRequestWithContext(
 		ctx,
 		http.MethodPost,
@@ -162,7 +162,7 @@ func postWithoutBody[R any](ctx context.Context, client *Client, path string) (*
 		nil,
 	)
 	if err != nil {
-		return nil, &Error{Err: err}
+		return nil, err
 	}
 
 	req.Header.Set("Accept", "application/json")
@@ -172,7 +172,7 @@ func postWithoutBody[R any](ctx context.Context, client *Client, path string) (*
 
 	res, err := client.client.Do(req)
 	if err != nil {
-		return nil, &Error{Err: err}
+		return nil, err
 	}
 	defer res.Body.Close()
 
@@ -182,16 +182,16 @@ func postWithoutBody[R any](ctx context.Context, client *Client, path string) (*
 
 	var result R
 	if err = json.NewDecoder(res.Body).Decode(&result); err != nil {
-		return nil, &Error{Err: err}
+		return nil, err
 	}
 
 	return &result, nil
 }
 
-func put[B, R any](ctx context.Context, client *Client, path string, body *B) (*R, *Error) {
+func put[B, R any](ctx context.Context, client *Client, path string, body *B) (*R, error) {
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(body); err != nil {
-		return nil, &Error{Err: err}
+		return nil, err
 	}
 
 	req, err := http.NewRequestWithContext(
@@ -201,7 +201,7 @@ func put[B, R any](ctx context.Context, client *Client, path string, body *B) (*
 		&buf,
 	)
 	if err != nil {
-		return nil, &Error{Err: err}
+		return nil, err
 	}
 
 	req.Header.Set("Accept", "application/json")
@@ -211,7 +211,7 @@ func put[B, R any](ctx context.Context, client *Client, path string, body *B) (*
 
 	res, err := client.client.Do(req)
 	if err != nil {
-		return nil, &Error{Err: err}
+		return nil, err
 	}
 	defer res.Body.Close()
 
@@ -221,13 +221,13 @@ func put[B, R any](ctx context.Context, client *Client, path string, body *B) (*
 
 	var result R
 	if err = json.NewDecoder(res.Body).Decode(&result); err != nil {
-		return nil, &Error{Err: err}
+		return nil, err
 	}
 
 	return &result, nil
 }
 
-func putWithoutBody[R any](ctx context.Context, client *Client, path string) (*R, *Error) {
+func putWithoutBody[R any](ctx context.Context, client *Client, path string) (*R, error) {
 	req, err := http.NewRequestWithContext(
 		ctx,
 		http.MethodPut,
@@ -235,7 +235,7 @@ func putWithoutBody[R any](ctx context.Context, client *Client, path string) (*R
 		nil,
 	)
 	if err != nil {
-		return nil, &Error{Err: err}
+		return nil, err
 	}
 
 	req.Header.Set("Accept", "application/json")
@@ -245,7 +245,7 @@ func putWithoutBody[R any](ctx context.Context, client *Client, path string) (*R
 
 	res, err := client.client.Do(req)
 	if err != nil {
-		return nil, &Error{Err: err}
+		return nil, err
 	}
 	defer res.Body.Close()
 
@@ -255,7 +255,7 @@ func putWithoutBody[R any](ctx context.Context, client *Client, path string) (*R
 
 	var result R
 	if err = json.NewDecoder(res.Body).Decode(&result); err != nil {
-		return nil, &Error{Err: err}
+		return nil, err
 	}
 
 	return &result, nil

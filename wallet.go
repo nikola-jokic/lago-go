@@ -119,7 +119,7 @@ type Wallet struct {
 	CreditsOngoingUsageBalance       string                              `json:"credits_ongoing_usage_balance,omitempty"`
 }
 
-func (c *Client) GetWallet(ctx context.Context, walletID string) (*Wallet, *Error) {
+func (c *Client) GetWallet(ctx context.Context, walletID string) (*Wallet, error) {
 	u := c.url("wallets/"+walletID, nil)
 	result, err := get[walletResult](ctx, c, u)
 	if err != nil {
@@ -129,12 +129,12 @@ func (c *Client) GetWallet(ctx context.Context, walletID string) (*Wallet, *Erro
 	return result.Wallet, nil
 }
 
-func (c *Client) ListWallets(ctx context.Context, walletListInput *WalletListInput) (*WalletList, *Error) {
+func (c *Client) ListWallets(ctx context.Context, walletListInput *WalletListInput) (*WalletList, error) {
 	u := c.url("wallets", walletListInput.query())
 	return get[WalletList](ctx, c, u)
 }
 
-func (c *Client) CreateWallet(ctx context.Context, walletInput *WalletInput) (*Wallet, *Error) {
+func (c *Client) CreateWallet(ctx context.Context, walletInput *WalletInput) (*Wallet, error) {
 	u := c.url("wallets", nil)
 	result, err := post[walletParams, walletResult](
 		ctx,
@@ -149,7 +149,7 @@ func (c *Client) CreateWallet(ctx context.Context, walletInput *WalletInput) (*W
 	return result.Wallet, nil
 }
 
-func (c *Client) UpdateWallet(ctx context.Context, walletInput *WalletInput, walletID string) (*Wallet, *Error) {
+func (c *Client) UpdateWallet(ctx context.Context, walletInput *WalletInput, walletID string) (*Wallet, error) {
 	u := c.url("wallets/"+walletID, nil)
 	result, err := put[walletParams, walletResult](
 		ctx,
@@ -164,7 +164,7 @@ func (c *Client) UpdateWallet(ctx context.Context, walletInput *WalletInput, wal
 	return result.Wallet, nil
 }
 
-func (c *Client) DeleteWallet(ctx context.Context, walletID string) (*Wallet, *Error) {
+func (c *Client) DeleteWallet(ctx context.Context, walletID string) (*Wallet, error) {
 	u := c.url("wallets/"+walletID, nil)
 	result, err := delete[walletResult](ctx, c, u)
 	if err != nil {
