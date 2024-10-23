@@ -178,7 +178,7 @@ func (c *Client) CreateSubscription(ctx context.Context, subscriptionInput *Subs
 	return result.Subscription, nil
 }
 
-func (c *Client) TerminateSubscription(ctx context.Context, subscriptionTerminateInput SubscriptionTerminateInput) (*Subscription, *Error) {
+func (c *Client) TerminateSubscription(ctx context.Context, subscriptionTerminateInput *SubscriptionTerminateInput) (*Subscription, *Error) {
 	u := c.url("subscriptions/"+subscriptionTerminateInput.ExternalID, subscriptionTerminateInput.query())
 	result, err := delete[subscriptionResult](ctx, c, u)
 	if err != nil {
@@ -198,7 +198,7 @@ func (c *Client) GetSubscription(ctx context.Context, subscriptionExternalId str
 	return result.Subscription, nil
 }
 
-func (c *Client) ListSubscriptions(ctx context.Context, subscriptionListInput SubscriptionListInput) (*SubscriptionList, *Error) {
+func (c *Client) ListSubscriptions(ctx context.Context, subscriptionListInput *SubscriptionListInput) (*SubscriptionList, *Error) {
 	u := c.url("subscriptions", subscriptionListInput.query())
 	return get[SubscriptionList](ctx, c, u)
 }
