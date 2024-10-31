@@ -286,8 +286,8 @@ type Customer struct {
 	Phone                     string                          `json:"phone,omitempty"`
 	URL                       string                          `json:"url,omitempty"`
 	FinalizeZeroAmountInvoice FinalizeZeroAmountInvoice       `json:"finalize_zero_amount_invoice,omitempty"`
-	BillingConfiguration      CustomerBillingConfiguration    `json:"billing_configuration,omitempty"`
-	ShippingAddress           Address                         `json:"shipping_address,omitempty"`
+	BillingConfiguration      *CustomerBillingConfiguration   `json:"billing_configuration,omitempty"`
+	ShippingAddress           *Address                        `json:"shipping_address,omitempty"`
 	IntegrationCustomers      []*IntegrationCustomersResponse `json:"integration_customers,omitempty"`
 	Metadata                  []*MetadataResponse             `json:"metadata,omitempty"`
 	Currency                  Currency                        `json:"currency,omitempty"`

@@ -19,8 +19,6 @@ type TaxInput struct {
 	Rate                  *float32 `json:"rate,omitempty"`
 	Description           string   `json:"description,omitempty"`
 	AppliedToOrganization bool     `json:"applied_to_organization,omitempty"`
-
-	CreatedAt time.Time `json:"created_at,omitempty"`
 }
 
 type TaxListInput struct {
