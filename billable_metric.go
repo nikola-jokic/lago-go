@@ -36,6 +36,7 @@ type BillableMetricInput struct {
 	Description      string                  `json:"description,omitempty"`
 	AggregationType  AggregationType         `json:"aggregation_type,omitempty"`
 	Recurring        bool                    `json:"recurring,omitempty"`
+	Expression       string                  `json:"expression,omitempty"`
 	FieldName        string                  `json:"field_name"`
 	WeightedInterval WeightedInterval        `json:"weighted_interval,omitempty"`
 	Filters          []*BillableMetricFilter `json:"filters,omitempty"`
@@ -79,6 +80,7 @@ type BillableMetric struct {
 	Description              string                  `json:"description,omitempty"`
 	Recurring                bool                    `json:"recurring,omitempty"`
 	AggregationType          AggregationType         `json:"aggregation_type,omitempty"`
+	Expression               string                  `json:"expression,omitempty"`
 	FieldName                string                  `json:"field_name"`
 	CreatedAt                time.Time               `json:"created_at,omitempty"`
 	WeightedInterval         *WeightedInterval       `json:"weighted_interval,omitempty"`
@@ -86,6 +88,25 @@ type BillableMetric struct {
 	ActiveSubscriptionsCount int                     `json:"active_subscriptions_count,omitempty"`
 	DraftInvoicesCount       int                     `json:"draft_invoices_count,omitempty"`
 	PlansCount               int                     `json:"plans_count,omitempty"`
+}
+
+type BillableMetricEveluateExpressionEvent struct {
+	Code       string                 `json:"code,omitempty"`
+	Timestamp  string                 `json:"timestamp,omitempty"`
+	Properties map[string]interface{} `json:"properties,omitempty"`
+}
+
+type BillableMetricEvaluateExpressionInput struct {
+	Expression string                                `json:"expression"`
+	Event      BillableMetricEveluateExpressionEvent `json:"event"`
+}
+
+type BillableMetricEvaluateExpressionResultValue struct {
+	Value string `json:"value,omitempty"`
+}
+
+type billableMetricEvaluateExpressionResult struct {
+	ExpressionResult BillableMetricEvaluateExpressionResultValue `json:"expression_result,omitempty"`
 }
 
 func (c *Client) GetBillableMetric(ctx context.Context, billableMetricCode string) (*BillableMetric, error) {
@@ -149,4 +170,20 @@ func (c *Client) DeleteBillableMetric(ctx context.Context, billableMetricCode st
 	}
 
 	return result.BillableMetric, nil
+}
+
+func (c *Client) EvaluateBillableMetricExpression(ctx context.Context, evaluateExpressingInput *BillableMetricEvaluateExpressionInput) (*BillableMetricEvaluateExpressionResultValue, error) {
+	u := c.url("billable_metrics/evaluate_expression", nil)
+
+	result, err := post[BillableMetricEvaluateExpressionInput, billableMetricEvaluateExpressionResult](
+		ctx,
+		c,
+		u,
+		evaluateExpressingInput,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return &result.ExpressionResult, nil
 }
