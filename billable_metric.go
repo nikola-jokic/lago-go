@@ -26,20 +26,30 @@ const (
 	SecondsInterval WeightedInterval = "seconds"
 )
 
+type RoundingFunction string
+
+const (
+	RoundRoundingFunction RoundingFunction = "round"
+	CeilRoundingFunction  RoundingFunction = "ceil"
+	FloorRoundingFunction RoundingFunction = "floor"
+)
+
 type billableMetricParams struct {
 	BillableMetricInput *BillableMetricInput `json:"billable_metric,omitempty"`
 }
 
 type BillableMetricInput struct {
-	Name             string                  `json:"name,omitempty"`
-	Code             string                  `json:"code,omitempty"`
-	Description      string                  `json:"description,omitempty"`
-	AggregationType  AggregationType         `json:"aggregation_type,omitempty"`
-	Recurring        bool                    `json:"recurring,omitempty"`
-	Expression       string                  `json:"expression,omitempty"`
-	FieldName        string                  `json:"field_name"`
-	WeightedInterval WeightedInterval        `json:"weighted_interval,omitempty"`
-	Filters          []*BillableMetricFilter `json:"filters,omitempty"`
+	Name              string                  `json:"name,omitempty"`
+	Code              string                  `json:"code,omitempty"`
+	Description       string                  `json:"description,omitempty"`
+	AggregationType   AggregationType         `json:"aggregation_type,omitempty"`
+	Recurring         bool                    `json:"recurring,omitempty"`
+	RoundingFunction  *RoundingFunction       `json:"rounding_function,omitempty"`
+	RoundingPrecision *int                    `json:"rounding_precision,omitempty"`
+	Expression        string                  `json:"expression,omitempty"`
+	FieldName         string                  `json:"field_name"`
+	WeightedInterval  WeightedInterval        `json:"weighted_interval,omitempty"`
+	Filters           []*BillableMetricFilter `json:"filters,omitempty"`
 }
 
 type BillableMetricListInput struct {
@@ -79,6 +89,8 @@ type BillableMetric struct {
 	Code                     string                  `json:"code,omitempty"`
 	Description              string                  `json:"description,omitempty"`
 	Recurring                bool                    `json:"recurring,omitempty"`
+	RoundingFunction         *RoundingFunction       `json:"rounding_function,omitempty"`
+	RoundingPrecision        *int                    `json:"rounding_precision,omitempty"`
 	AggregationType          AggregationType         `json:"aggregation_type,omitempty"`
 	Expression               string                  `json:"expression,omitempty"`
 	FieldName                string                  `json:"field_name"`
