@@ -50,7 +50,7 @@ type customerResult struct {
 
 type CustomerList struct {
 	Customers []*Customer `json:"customers,omitempty"`
-	Meta      Metadata    `json:"metadata,omitempty"`
+	Meta      Metadata    `json:"meta,omitempty"`
 }
 
 type CustomerUsageResult struct {
@@ -59,7 +59,7 @@ type CustomerUsageResult struct {
 
 type CustomerPastUsageList struct {
 	UsagePeriods []*CustomerUsage `json:"usage_periods"`
-	Meta         Metadata         `json:"metadata"`
+	Meta         Metadata         `json:"meta"`
 }
 
 type CustomerPortalURLResult struct {
